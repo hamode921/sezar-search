@@ -3,30 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رادار سيزار Royal PRO</title>
+    <title>رادار سيزار PRO - نسخة المؤشر</title>
     <style>
         body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; text-align: right; }
         .lock-box { border: 2px solid #fbbf24; padding: 30px; text-align: center; background: #050505; margin-top: 15vh; border-radius: 15px; width: 280px; box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); }
-        .secure-title { color: #fbbf24; font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         input.pass { background: #111; border: 1px solid #444; color: #fbbf24; padding: 12px; text-align: center; margin-bottom: 20px; width: 90%; outline: none; border-radius: 5px; font-weight: bold; }
         button.btn { background: #fbbf24; color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; transition: 0.3s; }
         #search-screen { display: none; width: 100%; max-width: 400px; text-align: center; margin-top: 5vh; }
         .search-input { background: #111; border: 2px solid #fbbf24; color: #fbbf24; padding: 15px; width: 90%; border-radius: 10px; font-size: 16px; outline: none; text-align: center; font-weight: bold; }
-        #results-list { margin-top: 20px; max-height: 400px; overflow-y: auto; width: 100%; }
+        #results-list { margin-top: 20px; max-height: 350px; overflow-y: auto; width: 100%; }
         .coin-item { background: #080808; padding: 15px; margin-bottom: 8px; border: 1px solid #222; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; }
         #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; }
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; position: relative; }
         .back-btn { position: absolute; left: 10px; top: 15px; background: #fbbf24; color: #000; border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; border-radius: 5px; font-size: 12px; }
         .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; }
+        
+        /* تصميم المؤشر الجديد */
+        .gauge-container { background: #0a0a0a; border: 1px solid #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+        #force-val { font-size: 20px; font-weight: bold; color: #fbbf24; }
+        .force-bar-bg { background: #111; height: 10px; width: 100%; border-radius: 5px; margin-top: 10px; overflow: hidden; position: relative; }
+        #force-bar-fill { background: linear-gradient(90deg, #ef4444, #fbbf24, #22c55e); height: 100%; width: 50%; transition: 0.5s; }
+
         .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 12px 5px; border-bottom: 1px solid #111; }
         .perc-tag { color: #fbbf24; font-weight: bold; font-size: 11px; background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 10px; border: 0.5px solid rgba(251, 191, 36, 0.3); }
-        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; width: 100%; box-sizing: border-box; }
+        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 20px; border-radius: 5px; font-size: 16px; }
         .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
         .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
-        .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
+        .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; }
         .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; border: 1px solid #fbbf24; padding: 8px 16px; border-radius: 5px; font-weight: bold; }
-        .ext-contact { margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
-        .ext-contact a { color: #fbbf24; text-decoration: none; font-size: 10px; border: 1px solid #333; padding: 5px 10px; border-radius: 5px; }
         .bn-logo { width: 18px; vertical-align: middle; margin-left: 8px; }
     </style>
 </head>
@@ -34,18 +38,14 @@
 
     <div id="auth-screen" class="lock-box">
         <div class="secure-title">🔒 قفـل البصمة الرقمية</div>
-        <div style="font-size: 11px; color:#888; margin-bottom: 20px;">نظام سيزار Royal Edition</div>
         <input type="password" id="pass-key" class="pass" placeholder="أدخل كود التفعيل">
         <button onclick="activate()" class="btn">تفعيل النظام الملكي</button>
-        <div class="ext-contact">
-            <a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a>
-            <a href="mailto:sezarphantom@gmail.com">📧 الإيميل</a>
-        </div>
+        <div style="margin-top: 15px; font-size: 10px; color:#555;">SEZAR ROYAL EDITION V21</div>
     </div>
 
     <div id="search-screen">
         <h2 style="color:#fbbf24;"><img src="https://www.binance.com/image/common/logo-mini.svg" class="bn-logo">محرك بحث سيزار</h2>
-        <input type="text" class="search-input" id="search-input" placeholder="ابحث عن عملة (مثلاً: SOL)" oninput="searchCoins()">
+        <input type="text" class="search-input" id="search-input" placeholder="ابحث عن عملة..." oninput="searchCoins()">
         <div id="results-list"></div>
     </div>
 
@@ -55,10 +55,16 @@
             <h2><img src="https://www.binance.com/image/common/logo-mini.svg" class="bn-logo">رادار سيزار PRO</h2>
             <p id="current-coin-name" style="color:#fbbf24;">[ BTCUSDT ]</p>
         </div>
+
         <div class="price-box" id="coin-price">Loading...</div>
-        <div style="text-align:center; font-size:10px; color:#444; margin-bottom:15px;">تحديث السيولة: <span id="seconds">30</span> ثانية</div>
-        <div id="buy-sell-per" style="text-align:center; font-size:14px; margin-bottom:5px; font-weight:bold; width: 100%;">BUY: --% | SELL: --%</div>
-        <div id="power-bar" style="text-align:center; margin-bottom:20px; letter-spacing:3px; width: 100%;"></div>
+        
+        <div class="gauge-container">
+            <div style="font-size: 12px; color: #888;">TREND FORCE (قوة الاتجاه)</div>
+            <div id="force-val">50%</div>
+            <div class="force-bar-bg"><div id="force-bar-fill"></div></div>
+        </div>
+
+        <div id="buy-sell-per" style="text-align:center; font-size:14px; margin-bottom:10px; font-weight:bold;">BUY: --% | SELL: --%</div>
         
         <div id="s-walls"></div>
         <div id="b-walls" style="margin-top:20px;"></div>
@@ -72,7 +78,7 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "PRO_V_ROYAL_V20"; 
+        const SYSTEM_VERSION = "PRO_V_ROYAL_V21"; 
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
         let currentSymbol = 'BTCUSDT', allCoins = [], pInt, lInt, tInt;
 
@@ -128,7 +134,7 @@
             pInt = setInterval(updatePrice, 1000);
             lInt = setInterval(updateLiquidity, 30000);
             let timeLeft = 30;
-            tInt = setInterval(() => { timeLeft--; if (timeLeft < 0) timeLeft = 30; document.getElementById('seconds').innerText = timeLeft; }, 1000);
+            tInt = setInterval(() => { timeLeft--; if (timeLeft < 0) timeLeft = 30; }, 1000);
         }
 
         function goBack() { showSearch(); }
@@ -160,7 +166,11 @@
 
                 let buyP = (tB/(tB+tS)*100);
                 document.getElementById('buy-sell-per').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${(100-buyP).toFixed(1)}%`;
-                document.getElementById('power-bar').innerText = "🟢".repeat(Math.round(buyP/6.6)) + "🔴".repeat(15-Math.round(buyP/6.6));
+                
+                // تحديث المؤشر الجديد
+                document.getElementById('force-val').innerText = buyP.toFixed(1) + "%";
+                document.getElementById('force-bar-fill').style.width = buyP + "%";
+
                 const sig = document.getElementById('sig-box');
                 if (buyP > 50) { sig.innerText = "🟢 SIGNAL: BULLISH"; sig.className = "sig-bullish"; }
                 else { sig.innerText = "🔴 SIGNAL: BEARISH"; sig.className = "sig-bearish"; }
