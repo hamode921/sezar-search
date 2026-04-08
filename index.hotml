@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة سيزار PRO - بحث العملات</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; text-align: right; }
+        
+        /* شاشة البحث */
+        #search-screen { width: 100%; max-width: 400px; text-align: center; margin-top: 5vh; }
+        .search-input { background: #111; border: 2px solid #fbbf24; color: #fbbf24; padding: 15px; width: 90%; border-radius: 10px; font-size: 16px; outline: none; text-align: center; font-weight: bold; }
+        #results-list { margin-top: 20px; max-height: 400px; overflow-y: auto; width: 100%; border-radius: 10px; }
+        .coin-item { background: #080808; padding: 15px; margin-bottom: 8px; border: 1px solid #222; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; border-radius: 8px; }
+        .coin-item:hover { border-color: #fbbf24; background: #111; }
+        .coin-name { font-weight: bold; font-size: 16px; }
+        .go-btn { background: #fbbf24; color: #000; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+
+        /* واجهة الرادار المدمجة */
+        #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; }
+        .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; position: relative; }
+        .back-btn { position: absolute; left: 10px; top: 15px; background: #fbbf24; color: #000; border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; border-radius: 5px; font-size: 12px; }
+        .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; border-radius: 10px; }
+        #timer-box { font-size: 10px; color: #444; margin-bottom: 20px; text-align: center; width: 100%; }
+        .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 12px 5px; border-bottom: 1px solid #111; }
+        .perc-tag { color: #fbbf24; font-weight: bold; font-size: 11px; background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 10px; border: 0.5px solid rgba(251, 191, 36, 0.3); }
+        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; }
+        .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
+        .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
+        
+        .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #fbbf24; }
+        .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; border: 1px solid #fbbf24; padding: 8px 16px; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="search-screen">
+        <h2 style="color:#fbbf24; letter-spacing: 2px;">🔭 منصة سيزار للتحليل</h2>
+        <p style="color: #666; font-size: 12px;">ابحث عن أي عملة في بايننس (USDT)</p>
+        <input type="text" class="search-input" id="search-input" placeholder="مثلاً: SOL, PEPE, BTC" oninput="searchCoins()">
+        <div id="results-list"></div>
+    </div>
+
+    <div id="radar-ui">
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">🔙 عودة</button>
+            <h2 id="radar-title" style="margin:0; font-size: 18px;">رادار سيزار المطور</h2>
+            <p id="current-coin-name" style="color:#fbbf24; margin:5px 0 0 0;">[ BTCUSDT ]</p>
+        </div>
+        <div class="price-box" id="coin-price">جاري التحميل...</div>
+        <div id="timer-box">تحديث السيولة خلال: <span id="seconds">30</span> ثانية</div>
+        <div id="buy-sell-per" style="text-align:center; font-size:14px; margin-bottom:5px; font-weight:bold; width: 100%;">BUY: --% | SELL: --%</div>
+        <div id="power-bar" style="text-align:center; margin-bottom:20px; letter-spacing:3px; width: 100%;"></div>
+        
+        <div id="s-walls"></div>
+        <div id="b-walls" style="margin-top:20px;"></div>
+        
+        <div id="sig-box">ANALYZING...</div>
+        
+        <div class="contact-dev">
+            <a href="https://t.me/se44se" target="_blank">✈️ تليجرام المطور</a>
+            <a href="mailto:sezarphantom@gmail.com">📧 دعم فني</a>
+        </div>
+    </div>
+
+    <script>
+        let currentSymbol = 'BTCUSDT';
+        let allCoins = [];
+        let priceInterval, liqInterval, timerInterval;
+
+        async function fetchAllCoins() {
+            try {
+                const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
+                const data = await res.json();
+                allCoins = data.symbols.filter(s => s.status === 'TRADING' && s.symbol.endsWith('USDT'));
+                searchCoins();
+            } catch (e) { document.getElementById('results-list').innerText = "خطأ في الاتصال بالسوق"; }
+        }
+
+        function searchCoins() {
+            const query = document.getElementById('search-input').value.toUpperCase();
+            const list = document.getElementById('results-list');
+            list.innerHTML = '';
+            
+            const filtered = allCoins.filter(c => c.symbol.includes(query)).slice(0, 15);
+            filtered.forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'coin-item';
+                item.innerHTML = `<span class="coin-name">${c.symbol}</span> <span class="go-btn">تحليل 🔭</span>`;
+                item.onclick = () => startRadar(c.symbol);
+                list.appendChild(item);
+            });
+        }
+
+        function startRadar(symbol) {
+            currentSymbol = symbol;
+            document.getElementById('search-screen').style.display = 'none';
+            document.getElementById('radar-ui').style.display = 'block';
+            document.getElementById('current-coin-name').innerText = `[ ${symbol} ]`;
+            
+            clearInterval(priceInterval); clearInterval(liqInterval); clearInterval(timerInterval);
+            
+            updatePrice(); updateLiquidity();
+            priceInterval = setInterval(updatePrice, 1000);
+            liqInterval = setInterval(updateLiquidity, 30000);
+            let timeLeft = 30;
+            timerInterval = setInterval(() => {
+                timeLeft--; if (timeLeft < 0) timeLeft = 30;
+                document.getElementById('seconds').innerText = timeLeft;
+            }, 1000);
+        }
+
+        function goBack() {
+            document.getElementById('search-screen').style.display = 'block';
+            document.getElementById('radar-ui').style.display = 'none';
+            clearInterval(priceInterval); clearInterval(liqInterval); clearInterval(timerInterval);
+        }
+
+        async function updatePrice() {
+            try {
+                const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currentSymbol}`);
+                const data = await res.json();
+                document.getElementById('coin-price').innerText = '$' + parseFloat(data.price).toLocaleString(undefined, {minimumFractionDigits: 2});
+            } catch (e) {}
+        }
+
+        async function updateLiquidity() {
+            try {
+                const res = await fetch(`https://api.binance.com/api/v3/depth?symbol=${currentSymbol}&limit=5000`);
+                const data = await res.json();
+                let bids = data.bids.map(b => ({p: parseFloat(b[0]), liq: parseFloat(b[0]) * parseFloat(b[1])}));
+                let asks = data.asks.map(a => ({p: parseFloat(a[0]), liq: parseFloat(a[0]) * parseFloat(a[1])}));
+                let tB = bids.reduce((s,b)=>s+b.liq,0), tS = asks.reduce((s,a)=>s+a.liq,0);
+                
+                let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
+                let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
+
+                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (نوايا البيع):</div>` + 
+                whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000).toFixed(1)}K</span><span class="perc-tag">${((a.liq / tS) * 100).toFixed(2)}%</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
+
+                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (نوايا الشراء):</div>` + 
+                whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000).toFixed(1)}K</span><span class="perc-tag">${((b.liq / tB) * 100).toFixed(2)}%</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
+
+                let buyP = (tB/(tB+tS)*100);
+                document.getElementById('buy-sell-per').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${(100-buyP).toFixed(1)}%`;
+                document.getElementById('power-bar').innerText = "🟢".repeat(Math.round(buyP/6.6)) + "🔴".repeat(15-Math.round(buyP/6.6));
+                
+                const sig = document.getElementById('sig-box');
+                if (buyP > 50) { sig.innerText = "🟢 SIGNAL: BULLISH (دخول شراء)"; sig.className = "sig-bullish"; }
+                else { sig.innerText = "🔴 SIGNAL: BEARISH (دخول بيع)"; sig.className = "sig-bearish"; }
+            } catch (e) {}
+        }
+
+        fetchAllCoins();
+    </script>
+</body>
+</html>
