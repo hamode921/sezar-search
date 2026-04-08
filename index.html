@@ -3,52 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة سيزار PRO - بحث العملات</title>
+    <title>رادار سيزار PRO الشامل</title>
     <style>
         body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; text-align: right; }
         
-        /* شاشة البحث */
-        #search-screen { width: 100%; max-width: 400px; text-align: center; margin-top: 5vh; }
-        .search-input { background: #111; border: 2px solid #fbbf24; color: #fbbf24; padding: 15px; width: 90%; border-radius: 10px; font-size: 16px; outline: none; text-align: center; font-weight: bold; }
-        #results-list { margin-top: 20px; max-height: 400px; overflow-y: auto; width: 100%; border-radius: 10px; }
-        .coin-item { background: #080808; padding: 15px; margin-bottom: 8px; border: 1px solid #222; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; border-radius: 8px; }
-        .coin-item:hover { border-color: #fbbf24; background: #111; }
-        .coin-name { font-weight: bold; font-size: 16px; }
-        .go-btn { background: #fbbf24; color: #000; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        /* شاشة القفل الأصلية */
+        .lock-box { border: 2px solid #fbbf24; padding: 30px; text-align: center; background: #050505; margin-top: 15vh; border-radius: 15px; width: 280px; box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); }
+        .secure-title { color: #fbbf24; font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .secure-warn { color: #888; font-size: 11px; margin-bottom: 25px; line-height: 1.5; }
+        input.pass { background: #111; border: 1px solid #444; color: #fbbf24; padding: 12px; text-align: center; margin-bottom: 20px; width: 90%; outline: none; border-radius: 5px; font-weight: bold; }
+        button.btn { background: #fbbf24; color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; transition: 0.3s; }
 
-        /* واجهة الرادار المدمجة */
+        /* شاشة البحث */
+        #search-screen { display: none; width: 100%; max-width: 400px; text-align: center; margin-top: 5vh; }
+        .search-input { background: #111; border: 2px solid #fbbf24; color: #fbbf24; padding: 15px; width: 90%; border-radius: 10px; font-size: 16px; outline: none; text-align: center; font-weight: bold; }
+        #results-list { margin-top: 20px; max-height: 400px; overflow-y: auto; width: 100%; }
+        .coin-item { background: #080808; padding: 15px; margin-bottom: 8px; border: 1px solid #222; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; }
+        .coin-item:hover { border-color: #fbbf24; }
+
+        /* واجهة الرادار (هيبة V16) */
         #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; }
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; position: relative; }
         .back-btn { position: absolute; left: 10px; top: 15px; background: #fbbf24; color: #000; border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; border-radius: 5px; font-size: 12px; }
-        .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; border-radius: 10px; }
-        #timer-box { font-size: 10px; color: #444; margin-bottom: 20px; text-align: center; width: 100%; }
+        .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; }
         .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 12px 5px; border-bottom: 1px solid #111; }
         .perc-tag { color: #fbbf24; font-weight: bold; font-size: 11px; background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 10px; border: 0.5px solid rgba(251, 191, 36, 0.3); }
-        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; }
+        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; width: 100%; box-sizing: border-box; }
         .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
         .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
-        
-        .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #fbbf24; }
+
+        .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; }
         .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; border: 1px solid #fbbf24; padding: 8px 16px; border-radius: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
+    <div id="auth-screen" class="lock-box">
+        <div class="secure-title">🔒 قفـل البصمة الرقمية</div>
+        <div class="secure-warn">نظام سيزار الشامل المطور<br>يرجى إدخال كود التفعيل المعتمد</div>
+        <input type="password" id="pass-key" class="pass" placeholder="أدخل كود التفعيل">
+        <button onclick="activate()" class="btn">تفعيل النظام</button>
+    </div>
+
     <div id="search-screen">
-        <h2 style="color:#fbbf24; letter-spacing: 2px;">🔭 منصة سيزار للتحليل</h2>
-        <p style="color: #666; font-size: 12px;">ابحث عن أي عملة في بايننس (USDT)</p>
-        <input type="text" class="search-input" id="search-input" placeholder="مثلاً: SOL, PEPE, BTC" oninput="searchCoins()">
+        <h2 style="color:#fbbf24;">🔍 محرك بحث سيزار</h2>
+        <input type="text" class="search-input" id="search-input" placeholder="ابحث عن عملة (مثلاً: SOL)" oninput="searchCoins()">
         <div id="results-list"></div>
     </div>
 
     <div id="radar-ui">
         <div class="header">
-            <button class="back-btn" onclick="goBack()">🔙 عودة</button>
-            <h2 id="radar-title" style="margin:0; font-size: 18px;">رادار سيزار المطور</h2>
-            <p id="current-coin-name" style="color:#fbbf24; margin:5px 0 0 0;">[ BTCUSDT ]</p>
+            <button class="back-btn" onclick="goBack()">🔙 بحث</button>
+            <h2>🔭 رادار سيزار PRO</h2>
+            <p id="current-coin-name" style="color:#fbbf24;">[ BTCUSDT ]</p>
         </div>
-        <div class="price-box" id="coin-price">جاري التحميل...</div>
-        <div id="timer-box">تحديث السيولة خلال: <span id="seconds">30</span> ثانية</div>
+        <div class="price-box" id="coin-price">Loading...</div>
+        <div style="text-align:center; font-size:10px; color:#444; margin-bottom:15px;">تحديث السيولة خلال: <span id="seconds">30</span> ثانية</div>
         <div id="buy-sell-per" style="text-align:center; font-size:14px; margin-bottom:5px; font-weight:bold; width: 100%;">BUY: --% | SELL: --%</div>
         <div id="power-bar" style="text-align:center; margin-bottom:20px; letter-spacing:3px; width: 100%;"></div>
         
@@ -58,35 +68,53 @@
         <div id="sig-box">ANALYZING...</div>
         
         <div class="contact-dev">
-            <a href="https://t.me/se44se" target="_blank">✈️ تليجرام المطور</a>
-            <a href="mailto:sezarphantom@gmail.com">📧 دعم فني</a>
+            <a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a>
+            <a href="mailto:sezarphantom@gmail.com">📧 الإيميل</a>
         </div>
     </div>
 
     <script>
-        let currentSymbol = 'BTCUSDT';
-        let allCoins = [];
-        let priceInterval, liqInterval, timerInterval;
+        const SYSTEM_VERSION = "PRO_V_TOTAL_V18"; 
+        const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
+        let currentSymbol = 'BTCUSDT', allCoins = [], pInt, lInt, tInt;
 
-        async function fetchAllCoins() {
-            try {
+        window.onload = function() {
+            if (localStorage.getItem('sz_pro_activated') === 'true' && localStorage.getItem('sz_pro_version') === SYSTEM_VERSION) {
+                showSearch();
+            } else {
+                localStorage.clear();
+                document.getElementById('auth-screen').style.display = 'block';
+            }
+        };
+
+        function activate() {
+            if (KEYS.includes(document.getElementById('pass-key').value)) {
+                localStorage.setItem('sz_pro_activated', 'true');
+                localStorage.setItem('sz_pro_version', SYSTEM_VERSION);
+                showSearch();
+            } else { alert("الكود خطأ!"); }
+        }
+
+        async function showSearch() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('search-screen').style.display = 'block';
+            document.getElementById('radar-ui').style.display = 'none';
+            if (allCoins.length === 0) {
                 const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
                 const data = await res.json();
                 allCoins = data.symbols.filter(s => s.status === 'TRADING' && s.symbol.endsWith('USDT'));
-                searchCoins();
-            } catch (e) { document.getElementById('results-list').innerText = "خطأ في الاتصال بالسوق"; }
+            }
+            searchCoins();
         }
 
         function searchCoins() {
             const query = document.getElementById('search-input').value.toUpperCase();
             const list = document.getElementById('results-list');
             list.innerHTML = '';
-            
-            const filtered = allCoins.filter(c => c.symbol.includes(query)).slice(0, 15);
-            filtered.forEach(c => {
+            allCoins.filter(c => c.symbol.includes(query)).slice(0, 15).forEach(c => {
                 const item = document.createElement('div');
                 item.className = 'coin-item';
-                item.innerHTML = `<span class="coin-name">${c.symbol}</span> <span class="go-btn">تحليل 🔭</span>`;
+                item.innerHTML = `<span>${c.symbol}</span> <span style="color:#fbbf24;">تحليل 🔭</span>`;
                 item.onclick = () => startRadar(c.symbol);
                 list.appendChild(item);
             });
@@ -98,23 +126,18 @@
             document.getElementById('radar-ui').style.display = 'block';
             document.getElementById('current-coin-name').innerText = `[ ${symbol} ]`;
             
-            clearInterval(priceInterval); clearInterval(liqInterval); clearInterval(timerInterval);
-            
+            clearInterval(pInt); clearInterval(lInt); clearInterval(tInt);
             updatePrice(); updateLiquidity();
-            priceInterval = setInterval(updatePrice, 1000);
-            liqInterval = setInterval(updateLiquidity, 30000);
+            pInt = setInterval(updatePrice, 1000);
+            lInt = setInterval(updateLiquidity, 30000);
             let timeLeft = 30;
-            timerInterval = setInterval(() => {
+            tInt = setInterval(() => {
                 timeLeft--; if (timeLeft < 0) timeLeft = 30;
                 document.getElementById('seconds').innerText = timeLeft;
             }, 1000);
         }
 
-        function goBack() {
-            document.getElementById('search-screen').style.display = 'block';
-            document.getElementById('radar-ui').style.display = 'none';
-            clearInterval(priceInterval); clearInterval(liqInterval); clearInterval(timerInterval);
-        }
+        function goBack() { showSearch(); }
 
         async function updatePrice() {
             try {
@@ -135,23 +158,21 @@
                 let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
                 let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
 
-                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (نوايا البيع):</div>` + 
-                whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000).toFixed(1)}K</span><span class="perc-tag">${((a.liq / tS) * 100).toFixed(2)}%</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
+                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (30s):</div>` + 
+                whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000000).toFixed(2)}M</span><span class="perc-tag">${((a.liq / tS) * 100).toFixed(2)}%</span><span>$${a.p.toLocaleString()} 🎯</span></div>`).join('');
 
-                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (نوايا الشراء):</div>` + 
-                whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000).toFixed(1)}K</span><span class="perc-tag">${((b.liq / tB) * 100).toFixed(2)}%</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
+                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (30s):</div>` + 
+                whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000000).toFixed(2)}M</span><span class="perc-tag">${((b.liq / tB) * 100).toFixed(2)}%</span><span>$${b.p.toLocaleString()} 🛡️</span></div>`).join('');
 
                 let buyP = (tB/(tB+tS)*100);
                 document.getElementById('buy-sell-per').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${(100-buyP).toFixed(1)}%`;
                 document.getElementById('power-bar').innerText = "🟢".repeat(Math.round(buyP/6.6)) + "🔴".repeat(15-Math.round(buyP/6.6));
                 
                 const sig = document.getElementById('sig-box');
-                if (buyP > 50) { sig.innerText = "🟢 SIGNAL: BULLISH (دخول شراء)"; sig.className = "sig-bullish"; }
-                else { sig.innerText = "🔴 SIGNAL: BEARISH (دخول بيع)"; sig.className = "sig-bearish"; }
+                if (buyP > 50) { sig.innerText = "🟢 SIGNAL: BULLISH"; sig.className = "sig-bullish"; }
+                else { sig.innerText = "🔴 SIGNAL: BEARISH"; sig.className = "sig-bearish"; }
             } catch (e) {}
         }
-
-        fetchAllCoins();
     </script>
 </body>
 </html>
