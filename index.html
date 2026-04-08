@@ -3,102 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رادار سيزار PRO الملكي - V24</title>
+    <title>رادار سيزار PRO - V25</title>
     <style>
-        body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; text-align: right; }
+        :root { --gold: #fbbf24; --card: #121212; --bg: #000; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; }
         
-        /* شاشة القفل الأصلية مع التواصل */
-        .lock-box { border: 2px solid #fbbf24; padding: 30px; text-align: center; background: #050505; margin-top: 15vh; border-radius: 15px; width: 280px; box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); }
-        .secure-title { color: #fbbf24; font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-        .secure-warn { color: #888; font-size: 11px; margin-bottom: 25px; line-height: 1.5; text-align: center; }
-        input.pass { background: #111; border: 1px solid #444; color: #fbbf24; padding: 12px; text-align: center; margin-bottom: 20px; width: 90%; outline: none; border-radius: 5px; font-weight: bold; }
-        button.btn { background: #fbbf24; color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; transition: 0.3s; }
-        
-        /* شاشة البحث الفخمة المزخرفة */
-        #search-screen { display: none; width: 100%; max-width: 400px; text-align: center; margin-top: 5vh; }
-        .sezar-style { color: #fbbf24; letter-spacing: 2px; text-shadow: 0 0 5px rgba(251, 191, 36, 0.5); }
-        .search-input { background: #111; border: 2px solid #fbbf24; color: #fbbf24; padding: 15px; width: 90%; border-radius: 10px; font-size: 16px; outline: none; text-align: center; font-weight: bold; }
-        #results-list { margin-top: 20px; max-height: 350px; overflow-y: auto; width: 100%; }
-        .coin-item { background: #080808; padding: 15px; margin-bottom: 8px; border: 1px solid #222; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; }
+        /* شاشة القفل */
+        .lock-box { border: 2px solid var(--gold); padding: 30px; text-align: center; background: #050505; margin-top: 15vh; border-radius: 20px; width: 300px; box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); }
+        input.pass { background: #111; border: 1px solid #444; color: var(--gold); padding: 12px; text-align: center; margin-bottom: 20px; width: 90%; outline: none; border-radius: 8px; font-weight: bold; }
+        button.btn { background: var(--gold); color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; transition: 0.3s; }
+
+        /* شاشة البحث الفخمة (مثل الصورة) */
+        #search-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
+        .sezar-style { color: var(--gold); letter-spacing: 2px; text-shadow: 0 0 10px rgba(251, 191, 36, 0.3); font-size: 24px; margin-bottom: 20px; }
+        .search-container { position: relative; width: 95%; margin: 0 auto 30px auto; }
+        .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 100%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; box-sizing: border-box; }
+        .search-input:focus { border-color: var(--gold); }
+
+        /* قائمة العملات الاحترافية */
+        #results-list { width: 100%; display: flex; flex-direction: column; gap: 10px; padding: 0 10px; box-sizing: border-box; }
+        .coin-item { background: var(--card); border: 1px solid #222; padding: 15px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .coin-item:hover { border-color: var(--gold); background: #1a1a1a; }
+        .coin-info { display: flex; align-items: center; gap: 15px; }
+        .coin-logo { width: 35px; height: 35px; border-radius: 50%; background: #222; }
+        .coin-texts { display: flex; flex-direction: column; text-align: right; }
+        .coin-symbol { font-weight: bold; font-size: 16px; color: #fff; }
+        .coin-name { font-size: 11px; color: #888; }
+        .analyze-btn { color: var(--gold); font-size: 12px; display: flex; align-items: center; gap: 5px; }
 
         /* واجهة الرادار (V24 الملكية) */
         #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; }
-        .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; position: relative; }
-        .back-btn { position: absolute; left: 10px; top: 15px; background: #fbbf24; color: #000; border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; border-radius: 5px; font-size: 12px; }
-        .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; }
+        .header { border: 2px double var(--gold); padding: 15px; text-align: center; margin-bottom: 20px; position: relative; border-radius: 10px; }
+        .back-btn { position: absolute; left: 10px; top: 15px; background: var(--gold); color: #000; border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; border-radius: 5px; font-size: 12px; }
+        .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 20px; background: #080808; color: #00d2ff; border-radius: 15px; }
 
-        /* 🔥 مؤشر سيزار الملكي المحدث (Trend Force V2) */
-        .gauge-container { background: #0a0a0a; border: 1px solid #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
-        .force-labels { display: flex; justify-content: space-between; font-weight: bold; font-size: 12px; margin-bottom: 5px; }
-        #force-val { font-size: 20px; font-weight: bold; color: #fbbf24; display: none; } /* مخفي لأن النسب فوق */
-        .force-bar-bg { background: #111; height: 10px; width: 100%; border-radius: 5px; overflow: hidden; position: relative; }
-        #force-bar-fill { background: linear-gradient(90deg, #ef4444, #fbbf24, #22c55e); height: 100%; width: 50%; transition: 0.5s; }
-        /* علامة لمنتصف العداد (50%) */
-        .bar-mid { position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: #333; z-index: 10; transform: translateX(-50%); }
+        .gauge-container { background: #0a0a0a; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: center; }
+        .force-labels { display: flex; justify-content: space-between; font-weight: bold; font-size: 12px; margin-bottom: 10px; }
+        .force-bar-bg { background: #111; height: 12px; width: 100%; border-radius: 6px; overflow: hidden; position: relative; }
+        #force-bar-fill { background: linear-gradient(90deg, #ef4444, var(--gold), #22c55e); height: 100%; width: 50%; transition: 0.5s; }
+        .bar-mid { position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: #333; z-index: 10; }
 
-        /* الجدران والأقسام الأصلية */
-        .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 12px 5px; border-bottom: 1px solid #111; }
-        .perc-tag { color: #fbbf24; font-weight: bold; font-size: 11px; background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 10px; border: 0.5px solid rgba(251, 191, 36, 0.3); }
-        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 20px; border-radius: 5px; font-size: 16px; }
+        .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 14px 5px; border-bottom: 1px solid #111; }
+        .perc-tag { color: var(--gold); font-weight: bold; font-size: 11px; background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 10px; border: 0.5px solid rgba(251, 191, 36, 0.3); }
+        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 20px; border-radius: 10px; font-size: 16px; }
         .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
         .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
 
-        /* تواصل المطور وتلكرام (دائماً موجودة) */
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
-        .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; border: 1px solid #fbbf24; padding: 8px 16px; border-radius: 5px; font-weight: bold; }
-        .ext-contact { margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
-        .ext-contact a { color: #fbbf24; text-decoration: none; font-size: 10px; border: 1px solid #333; padding: 5px 10px; border-radius: 5px; }
-        .bn-logo { width: 18px; vertical-align: middle; margin-left: 8px; }
+        .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen" class="lock-box">
         <div class="secure-title">🔒 قفـل البصمة الرقمية</div>
-        <div class="secure-warn">هذا الكود يعمل على جهاز واحد فقط<br>ولن يعمل على غيره نهائياً</div>
+        <div style="font-size: 11px; color: #666; margin-bottom: 20px;">هذا الكود يعمل على جهاز واحد فقط</div>
         <input type="password" id="pass-key" class="pass" placeholder="أدخل كود التفعيل">
-        <button onclick="activate()" class="btn">تفعيل لجهاز واحد فقط</button>
-        <div class="ext-contact">
-            <a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a>
-            <a href="mailto:sezarphantom@gmail.com">📧 الإيميل</a>
-        </div>
+        <button onclick="activate()" class="btn">تفعيل النظام</button>
     </div>
 
     <div id="search-screen">
         <h2 class="sezar-style">「 المطور سيزار 」</h2>
-        <input type="text" class="search-input" id="search-input" placeholder="ابحث عن عملة (مثل: SOL)" oninput="searchCoins()">
+        <div class="search-container">
+            <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث عن عملة..." oninput="searchCoins()">
+        </div>
         <div id="results-list"></div>
     </div>
 
     <div id="radar-ui">
         <div class="header">
-            <button class="back-btn" onclick="goBack()">🔙 بحث</button>
+            <button class="back-btn" onclick="goBack()">🔙 عودة</button>
             <h2 class="sezar-style">「 رادار سيزار PRO 」</h2>
-            <p id="current-coin-name" style="color:#fbbf24; margin-top: 10px;">[ BTCUSDT ]</p>
+            <p id="current-coin-name" style="color:var(--gold);">[ BTCUSDT ]</p>
         </div>
-
         <div class="price-box" id="coin-price">Loading...</div>
-        
         <div class="gauge-container">
-            <div style="font-size: 12px; color: #888; margin-bottom: 10px;">TREND FORCE (قوة الاتجاه)</div>
-            
             <div class="force-labels">
                 <span id="force-sell" style="color:#ef4444;">🔴 بيع: --%</span>
                 <span id="force-buy" style="color:#22c55e;">🟢 شراء: --%</span>
             </div>
-
-            <div class="force-bar-bg">
-                <div class="bar-mid"></div> <div id="force-bar-fill"></div>
-            </div>
+            <div class="force-bar-bg"><div class="bar-mid"></div><div id="force-bar-fill"></div></div>
         </div>
-
-        <div id="buy-sell-per" style="display:none;"></div>
-        
         <div id="s-walls"></div>
         <div id="b-walls" style="margin-top:20px;"></div>
-        
         <div id="sig-box">ANALYZING...</div>
-        
         <div class="contact-dev">
             <a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a>
             <a href="mailto:sezarphantom@gmail.com">📧 الإيميل</a>
@@ -106,17 +94,14 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "PRO_V_TOTAL_V24"; 
+        const SYSTEM_VERSION = "PRO_V_TOTAL_V25"; 
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
-        let currentSymbol = 'BTCUSDT', allCoins = [], pInt, lInt, tInt;
+        let currentSymbol = 'BTCUSDT', allCoins = [], pInt, lInt;
 
         window.onload = function() {
             if (localStorage.getItem('sz_pro_activated') === 'true' && localStorage.getItem('sz_pro_version') === SYSTEM_VERSION) {
                 showSearch();
-            } else {
-                localStorage.clear();
-                document.getElementById('auth-screen').style.display = 'block';
-            }
+            } else { document.getElementById('auth-screen').style.display = 'block'; }
         };
 
         function activate() {
@@ -143,10 +128,24 @@
             const query = document.getElementById('search-input').value.toUpperCase();
             const list = document.getElementById('results-list');
             list.innerHTML = '';
+            
             allCoins.filter(c => c.symbol.includes(query)).slice(0, 15).forEach(c => {
+                const pureName = c.symbol.replace('USDT', '');
                 const item = document.createElement('div');
                 item.className = 'coin-item';
-                item.innerHTML = `<span>${c.symbol}</span> <span style="color:#fbbf24;">تحليل 🔭</span>`;
+                // رابط شعار العملة من بايننس
+                const logoUrl = `https://bin.bnbstatic.com/static/assets/logos/${pureName}.png`;
+                
+                item.innerHTML = `
+                    <div class="coin-info">
+                        <img src="${logoUrl}" class="coin-logo" onerror="this.src='https://www.binance.com/image/common/logo-mini.svg'">
+                        <div class="coin-texts">
+                            <span class="coin-symbol">${pureName}</span>
+                            <span class="coin-name">${c.symbol}</span>
+                        </div>
+                    </div>
+                    <div class="analyze-btn">تحليل 🔭</div>
+                `;
                 item.onclick = () => startRadar(c.symbol);
                 list.appendChild(item);
             });
@@ -157,11 +156,10 @@
             document.getElementById('search-screen').style.display = 'none';
             document.getElementById('radar-ui').style.display = 'block';
             document.getElementById('current-coin-name').innerText = `[ ${symbol} ]`;
-            clearInterval(pInt); clearInterval(lInt); clearInterval(tInt);
+            clearInterval(pInt); clearInterval(lInt);
             updatePrice(); updateLiquidity();
             pInt = setInterval(updatePrice, 1000);
             lInt = setInterval(updateLiquidity, 30000);
-            tInt = setInterval(() => {}, 1000);
         }
 
         function goBack() { showSearch(); }
@@ -171,7 +169,7 @@
                 const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currentSymbol}`);
                 const data = await res.json();
                 let p = parseFloat(data.price);
-                document.getElementById('coin-price').innerText = '$' + p.toLocaleString(undefined, {minimumFractionDigits: p < 1 ? 5 : 2, maximumFractionDigits: 5});
+                document.getElementById('coin-price').innerText = '$' + p.toLocaleString(undefined, {minimumFractionDigits: p < 1 ? 5 : 2});
             } catch (e) {}
         }
 
@@ -182,21 +180,19 @@
                 let bids = data.bids.map(b => ({p: parseFloat(b[0]), liq: parseFloat(b[0]) * parseFloat(b[1])}));
                 let asks = data.asks.map(a => ({p: parseFloat(a[0]), liq: parseFloat(a[0]) * parseFloat(a[1])}));
                 let tB = bids.reduce((s,b)=>s+b.liq,0), tS = asks.reduce((s,a)=>s+a.liq,0);
+                
                 let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
                 let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
 
-                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (30s):</div>` + 
+                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom:1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (30s):</div>` + 
                 whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000000).toFixed(2)}M</span><span class="perc-tag">${((a.liq / tS) * 100).toFixed(2)}%</span><span>$${a.p.toFixed(a.p < 1 ? 5 : 2)} 🎯</span></div>`).join('');
 
-                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (30s):</div>` + 
+                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom:1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (30s):</div>` + 
                 whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000000).toFixed(2)}M</span><span class="perc-tag">${((b.liq / tB) * 100).toFixed(2)}%</span><span>$${b.p.toFixed(b.p < 1 ? 5 : 2)} 🛡️</span></div>`).join('');
 
                 let buyP = (tB/(tB+tS)*100);
-                
-                // 🔥 تحديث المؤشر الملكي الجديد حسب طلبك يا ملك
-                let sellP = 100 - buyP;
                 document.getElementById('force-buy').innerText = "🟢 شراء: " + buyP.toFixed(1) + "%";
-                document.getElementById('force-sell').innerText = "🔴 بيع: " + sellP.toFixed(1) + "%";
+                document.getElementById('force-sell').innerText = "🔴 بيع: " + (100-buyP).toFixed(1) + "%";
                 document.getElementById('force-bar-fill').style.width = buyP + "%";
 
                 const sig = document.getElementById('sig-box');
