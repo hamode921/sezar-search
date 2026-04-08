@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رادار سيزار PRO - V27</title>
+    <title>رادار سيزار PRO - V28</title>
     <style>
         :root { --gold: #fbbf24; --card: #121212; --bg: #000; }
         body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; text-align: right; }
@@ -22,12 +22,16 @@
         .sezar-style { color: var(--gold); letter-spacing: 2px; text-shadow: 0 0 10px rgba(251, 191, 36, 0.3); font-size: 24px; margin-bottom: 25px; }
         .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 30px; }
 
-        /* بطاقات العملات */
+        /* بطاقات العملات المحدثة */
         #results-list { width: 100%; display: flex; flex-direction: column; gap: 12px; }
         .coin-item { background: var(--card); border: 1px solid #222; padding: 15px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
         .coin-item:hover { border-color: var(--gold); background: #1a1a1a; }
         .coin-info { display: flex; align-items: center; gap: 15px; flex-direction: row-reverse; }
-        .coin-logo { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        
+        /* إطار لوغو ثابت يمنع الرمش */
+        .logo-frame { width: 35px; height: 35px; border-radius: 50%; background: #1a1a1a; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #333; }
+        .coin-logo { width: 100%; height: 100%; object-fit: cover; }
+        
         .coin-texts { display: flex; flex-direction: column; text-align: left; }
         .coin-symbol { font-weight: bold; font-size: 16px; color: #fff; }
         .coin-name { font-size: 10px; color: #666; }
@@ -95,9 +99,11 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "PRO_V_TOTAL_V27"; 
+        const SYSTEM_VERSION = "PRO_V_TOTAL_V28"; 
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
         let currentSymbol = 'BTCUSDT', allCoins = [], pInt, lInt;
+        
+        // شعار بايننس الاحتياطي
         const fallbackLogo = "https://www.binance.com/image/common/logo-mini.svg";
 
         window.onload = function() {
@@ -130,15 +136,23 @@
             const query = document.getElementById('search-input').value.toUpperCase();
             const list = document.getElementById('results-list');
             list.innerHTML = '';
+            
             allCoins.filter(c => c.symbol.includes(query)).slice(0, 15).forEach(c => {
                 const s = c.symbol.replace('USDT', '');
                 const item = document.createElement('div');
                 item.className = 'coin-item';
-                const logoUrl = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${s.toLowerCase()}.png`;
+                
+                // رابط شعار بايننس الرسمي (أكثر استقراراً)
+                const logoUrl = `https://bin.bnbstatic.com/static/assets/logos/${s}.png`;
 
                 item.innerHTML = `
                     <div class="coin-info">
-                        <img src="${logoUrl}" class="coin-logo" onerror="this.src='${fallbackLogo}'">
+                        <div class="logo-frame">
+                            <img src="${logoUrl}" class="coin-logo" 
+                                 onload="this.style.opacity='1'" 
+                                 onerror="this.src='${fallbackLogo}'" 
+                                 style="opacity:0; transition: opacity 0.3s;">
+                        </div>
                         <div class="coin-texts">
                             <span class="coin-symbol">${s}</span>
                             <span class="coin-name">${c.symbol}</span>
