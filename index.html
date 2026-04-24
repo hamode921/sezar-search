@@ -1,6 +1,50 @@
+<div class="ice-card" style="border-color: var(--gold); margin-top: 10px;">
+    <div style="font-size:11px; color:var(--gold); font-weight:bold; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;">🐋 WHALE POSITIONS (LIVE)</div>
+    <div style="display: flex; justify-content: space-between; text-align: center;">
+        <div>
+            <div style="color: #888; font-size: 9px;">LONG WHALES</div>
+            <div id="whale-longs" style="color: var(--green); font-weight: bold; font-size: 14px;">--</div>
+        </div>
+        <div style="border-left: 1px solid #222; padding: 0 15px;">
+            <div style="color: #888; font-size: 9px;">NET RATIO</div>
+            <div id="whale-net" style="color: #fff; font-weight: bold; font-size: 14px;">--</div>
+        </div>
+        <div>
+            <div style="color: #888; font-size: 9px;">SHORT WHALES</div>
+            <div id="whale-shorts" style="color: var(--red); font-weight: bold; font-size: 14px;">--</div>
+        </div>
+    </div>
+</div>
 
 
+<script>
+    async function updateWhaleStats() {
+        if (currentMode !== 'futures') {
+            document.getElementById('whale-longs').innerText = "N/A";
+            document.getElementById('whale-shorts').innerText = "N/A";
+            document.getElementById('whale-net').innerText = "SPOT";
+            return;
+        }
+        try {
+            const res = await fetch(`https://fapi.binance.com/fapi/v1/topLongShortAccountRatio?symbol=${currentSymbol}&period=30m&limit=1`);
+            const data = await res.json();
+            if (data && data.length > 0) {
+                let longRatio = parseFloat(data[0].longAccount);
+                let shortRatio = parseFloat(data[0].shortAccount);
+                let net = (longRatio / shortRatio).toFixed(2);
+                
+                // حساب تقديري لعدد المراكز بناءً على النسب المئوية
+                document.getElementById('whale-longs').innerText = Math.floor(longRatio * 200); 
+                document.getElementById('whale-shorts').innerText = Math.floor(shortRatio * 200);
+                
+                const netEl = document.getElementById('whale-net');
+                netEl.innerText = net;
+                netEl.style.color = net > 1 ? "var(--green)" : "var(--red)";
+            }
+        } catch (e) { console.log("Whale Data Error"); }
+    }
 
-                                              للحصول ع احدث اصدار يرجى التواصل مع المطور     
-
-                                                       تلغرام: se44se  
+    // 3. داخل وظيفة startRadar(symbol, mode) الموجودة في كودك الأصلي
+    // أضف السطر التالي في نهاية الوظيفة لتفعيل التحديث التلقائي:
+    // setInterval(updateWhaleStats, 5000); updateWhaleStats();
+</script>
