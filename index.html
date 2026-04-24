@@ -144,6 +144,7 @@
                     <div class="whale-col">
                         <div class="whale-label">SHORT WHALES</div>
                         <div class="whale-val" id="short-whales" style="color:var(--red)">N/A</div>
+                        <div id="total-short-usdt" style="font-size: 9px; color: #888; margin-top: 2px;">$0.00M</div>
                     </div>
                     <div class="whale-col" style="border-left:1px solid #222; border-right:1px solid #222;">
                         <div class="whale-label">NET RATIO</div>
@@ -152,6 +153,7 @@
                     <div class="whale-col">
                         <div class="whale-label">LONG WHALES</div>
                         <div class="whale-val" id="long-whales" style="color:var(--green)">N/A</div>
+                        <div id="total-long-usdt" style="font-size: 9px; color: #888; margin-top: 2px;">$0.00M</div>
                     </div>
                 </div>
             </div>
@@ -341,7 +343,9 @@
             document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
             document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
             
-            // تحديث بيانات الحيتان بناءً على السيولة المتاحة
+            document.getElementById('total-long-usdt').innerText = "$" + (tB / 1000000).toFixed(2) + "M";
+            document.getElementById('total-short-usdt').innerText = "$" + (tS / 1000000).toFixed(2) + "M";
+
             if(currentMode === 'futures') {
                 document.getElementById('whale-ratio').innerText = "FUTURES";
                 document.getElementById('short-whales').innerText = Math.floor(sellP * 1.5);
