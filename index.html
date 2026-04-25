@@ -6,6 +6,7 @@
     <title>SEZAR-PHANTOM PRO ULTIMATE</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; }
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -36,7 +37,6 @@
         #power-bar { text-align:center; margin-bottom:20px; display: flex; justify-content: center; gap: 4px; }
         .ball { width: 12px; height: 12px; border-radius: 50%; }
 
-        /* حقل الحيتان المباشر - المحدث */
         .whale-live-box { background: rgba(8, 8, 8, 0.9); border: 1px solid var(--gold); border-radius: 10px; padding: 12px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center; }
         .whale-col { flex: 1; text-align: center; }
         .whale-label { font-size: 8px; color: #888; margin-bottom: 4px; }
@@ -45,9 +45,13 @@
 
         .row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #111; font-size: 13px; font-weight: bold; }
         .ice-card { background: var(--card); border: 1px solid var(--ghost); padding: 15px; border-radius: 12px; margin-top: 20px; width: 100%; box-sizing: border-box; }
-        .ai-signal-box { background: linear-gradient(45deg, #080808, #111); border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; }
+        .ai-signal-box { background: linear-gradient(45deg, #080808, #111); border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; position: relative; }
         #ai-decision { font-size: 18px; font-weight: 900; margin: 5px 0; }
         .ai-meta { display: flex; justify-content: space-around; font-size: 10px; color: #888; margin-top: 5px; }
+
+        /* زر اللقطة الصغير */
+        .screenshot-btn { position: absolute; right: 10px; top: 10px; background: none; border: 1px solid var(--gold); color: var(--gold); border-radius: 5px; font-size: 12px; cursor: pointer; padding: 2px 5px; z-index: 5; }
+
         #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; }
         .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
         .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
@@ -134,11 +138,14 @@
             </div>
 
             <div id="s-walls"></div>
+
             <div class="ai-signal-box">
+                <button class="screenshot-btn" onclick="takeScreenshot()">📷 اللقطة</button>
                 <div style="font-size:11px;color:var(--gold);font-weight:bold;border-bottom:1px solid #222;padding-bottom:5px;margin-bottom:8px;">🤖 CAESAR SIGNAL AI</div>
                 <div id="ai-decision">ANALYZING...</div>
                 <div class="ai-meta"><span>TARGET: <span id="ai-target">--</span></span><span>ACCURACY: <span id="ai-conf">--</span></span></div>
             </div>
+
             <div id="b-walls" style="margin-top:20px;"></div>
             <div class="ice-card">
                 <div style="font-size:11px; color:var(--ghost); display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
@@ -163,6 +170,18 @@
     let lastVolMap = new Map();
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
+    
+    // وظيفة لقطة الشاشة
+    function takeScreenshot() {
+        const radarUI = document.getElementById('radar-ui');
+        html2canvas(radarUI, { backgroundColor: "#000", useCORS: true }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Cesar-Radar-${currentSymbol}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    }
+
     function switchTab(tab) {
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
         document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
@@ -280,7 +299,6 @@
             let buyP = (tB/(tB+tS)*100), sellP = 100 - buyP;
             document.getElementById('buy-sell-display').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
             
-            // تحديث حقل الحيتان المباشر: البيع يسار والشراء يمين
             let totalW = Math.floor(Math.random() * 40) + 60;
             let lW = Math.round(totalW * (buyP/100));
             let sW = totalW - lW;
