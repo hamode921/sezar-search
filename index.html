@@ -56,7 +56,10 @@
         .tab-btn.active { background: var(--gold); color: #000; }
 
         .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        .hunt-label-box { display: inline-flex; align-items: center; gap: 4px; background: rgba(34, 197, 94, 0.1); border: 1px solid var(--green); padding: 2px 6px; border-radius: 4px; color: var(--green); font-size: 9px; font-weight: 900; vertical-align: middle; }
+        
+        /* التنبيه الجانبي المدمج */
+        .hunt-label-inline { display: inline-flex; align-items: center; gap: 4px; background: rgba(34, 197, 94, 0.1); border: 1px solid var(--green); padding: 1px 5px; border-radius: 4px; color: var(--green); font-size: 10px; font-weight: bold; margin-right: 8px; vertical-align: middle; }
+        
         .whale-alert { border-color: var(--gold) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
@@ -72,7 +75,6 @@
         </div>
 
         <div id="search-screen">
-            <div class="sezar-brand"><span class="sub-text">「 SEZAR-PHANTOM 」</span></div>
             <div class="nav-tabs">
                 <button class="tab-btn active" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
@@ -108,24 +110,6 @@
             </div>
             <div class="price-box" id="coin-price">Loading...</div>
             <div id="chart-container"><iframe id="chart-frame" src=""></iframe></div>
-            <div class="whale-live-box">
-                <div class="whale-col">
-                    <div class="whale-label">SHORT WHALES</div>
-                    <div id="sw-count-whale" class="whale-val" style="color:var(--red)">--</div>
-                </div>
-                <div class="whale-col" style="border-left:1px solid #222; border-right:1px solid #222;">
-                    <div class="whale-label">NET RATIO</div>
-                    <div id="net-perc" class="whale-val" style="color:var(--gold)">0.0%</div>
-                </div>
-                <div class="whale-col">
-                    <div class="whale-label">LONG WHALES</div>
-                    <div id="lw-count" class="whale-val" style="color:var(--green)">--</div>
-                </div>
-            </div>
-            <div class="ai-signal-box">
-                <div style="font-size:11px;color:var(--gold);font-weight:bold;margin-bottom:8px;">🤖 CAESAR SIGNAL AI</div>
-                <div id="ai-decision">ANALYZING...</div>
-            </div>
         </div>
     </div>
 </div>
@@ -134,7 +118,7 @@
     const firebaseConfig = { apiKey: "AIzaSyAzEZksgZMPbY79K_TM3mHKeW1shQ6V-lY", authDomain: "sezar-phantom-auth.firebaseapp.com", projectId: "sezar-phantom-auth", storageBucket: "sezar-phantom-auth.firebasestorage.app", messagingSenderId: "112991314655", appId: "1:112991314655:web:cbca0b5c0c6b6e4f51ff6a" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastVolMap = new Map(), huntInt, scanInt;
+    let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, lastVolMap = new Map(), huntInt, scanInt;
 
     function switchTab(tab) {
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
@@ -165,10 +149,10 @@
             candidates.forEach(c => {
                 html += `<div class="scan-item ${c.huntScore > 5 ? 'whale-alert' : ''}">
                     <div style="text-align:right">
-                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">
-                            ${c.symbol} <span class="hunt-label-box">ACCUMULATION 🔥 🐋</span>
+                        <div style="display:flex; align-items:center; color:var(--gold); font-weight:bold; font-size:16px; flex-wrap: wrap;">
+                            ${c.symbol} <span class="hunt-label-inline">ACCUMULATION 🔥 🐋</span>
                         </div>
-                        <div style="color:var(--green); font-size:11px; margin-top:4px;">PRE-EXPLOSION: +5% ~ +15%</div>
+                        <div style="color:var(--green); font-size:11px; margin-top:2px;">PRE-EXPLOSION: +5% ~ +15%</div>
                         <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | CHG: ${c.priceChangePercent}%</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--green); color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">صيد 🎯</button>
@@ -178,7 +162,6 @@
         } catch (e) {}
     }
 
-    // باقي الوظائف (activate, showSearch, startRadar, إلخ) كما هي تماماً
     async function checkAuth() { if (localStorage.getItem('sz_ultimate_v1_key')) showSearch(); }
     async function activate() { const k = document.getElementById('pass-key').value; if(k) { localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); } }
     async function showSearch() {
@@ -196,7 +179,7 @@
         allCoins.filter(c => c.s.includes(query)).slice(0, 10).forEach(c => {
             const item = document.createElement('div');
             item.className = 'coin-item';
-            item.innerHTML = `<div><span class="coin-type" style="border:1px solid var(--ghost); color:var(--ghost)">SPOT</span><span style="font-weight:bold;">${c.s}</span></div><div style="color:var(--gold); font-size:11px;">تحليل 🔭</div>`;
+            item.innerHTML = `<div><span style="font-weight:bold;">${c.s}</span></div><div style="color:var(--gold); font-size:11px;">تحليل 🔭</div>`;
             item.onclick = () => startRadar(c.s, c.m);
             list.appendChild(item);
         });
