@@ -7,7 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --alpha: #fbbf24; } /* تم توحيد اللون الذهبي */
+        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --alpha: #fbbf24; }
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
         .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
@@ -58,7 +58,7 @@
         .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
         .hunt-tag { background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .dump-tag { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
-        .alpha-tag { background: rgba(251, 191, 36, 0.1); color: var(--alpha); border: 1px solid var(--alpha); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
+        .alpha-tag { background: rgba(251, 191, 36, 0.1); color: var(--gold); border: 1px solid var(--gold); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .whale-alert { border-color: var(--gold) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
@@ -83,9 +83,9 @@
         </div>
 
         <div id="alpha-screen">
-            <div class="sezar-brand"><span class="sub-text" style="color:var(--alpha);">ALPHA WEB3</span></div>
+            <div class="sezar-brand"><span class="sub-text" style="color:var(--gold);">ALPHA WEB3</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn active" onclick="switchTab('alpha')" style="border-color: var(--alpha); color: var(--alpha);">🪐 ألفا Web3</button>
+                <button class="tab-btn active" onclick="switchTab('alpha')" style="border-color: var(--gold); color: var(--gold);">🪐 ألفا Web3</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
