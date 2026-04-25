@@ -7,7 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --alpha: #fbbf24; } /* تم جعل لون ألفا ذهبي مثل الميم */
+        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --alpha: #fbbf24; } /* تم توحيد لون ألفا مع الذهبي */
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
         .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
@@ -44,7 +44,7 @@
 
         .row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #111; font-size: 13px; font-weight: bold; }
         .ice-card { background: var(--card); border: 1px solid var(--ghost); padding: 15px; border-radius: 12px; margin-top: 20px; width: 100%; box-sizing: border-box; }
-        .ai-signal-box { background: linear-gradient(45deg, #080808, #111); border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; }
+        .ai-signal-box { background: linear(gradient(45deg, #080808, #111); border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; }
         #ai-decision { font-size: 18px; font-weight: 900; margin: 5px 0; }
         .ai-meta { display: flex; justify-content: space-around; font-size: 10px; color: #888; margin-top: 5px; }
         #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; }
@@ -59,15 +59,18 @@
         .hunt-tag { background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .dump-tag { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         
-        /* Alpha Web3 - نفس تنسيق الميم الذهبي بالضبط */
+        /* Alpha Web3 - تنسيق ذهبي مطابق تماماً للميم مع الوميض */
         .alpha-tag { background: rgba(251, 191, 36, 0.1); color: var(--gold); border: 1px solid var(--gold); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
-        @keyframes blink-gold { 0% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } 50% { border-color: #222; box-shadow: none; } 100% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } }
-        .alpha-gold-blink { animation: blink-gold 0.6s infinite; border-width: 2px !important; }
+        
+        /* أنيميشن الوميض الذهبي المستمر لتبويب ألفا */
+        @keyframes blink-gold-always { 0% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } 50% { border-color: #222; box-shadow: none; } 100% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } }
+        .alpha-gold-blink { animation: blink-gold-always 0.6s infinite; border-width: 2px !important; }
 
         .whale-alert { border-color: var(--gold) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
 
+        @keyframes blink-gold { 0% { border-color: var(--gold); box-shadow: 0 0 8px var(--gold); } 50% { border-color: #555; box-shadow: none; } 100% { border-color: var(--gold); box-shadow: 0 0 8px var(--gold); } }
         .blink-border { animation: blink-gold 0.6s infinite; border-width: 2px !important; }
     </style>
 </head>
@@ -241,7 +244,7 @@
             let candidates = data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 1000000).sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent)).slice(0, 15);
             let html = '';
             candidates.forEach(c => {
-                // اللون الذهبي والوميض مثل الميم
+                // تم تغيير التنسيق للذهبي مع الوميض المستمر alpha-gold-blink
                 html += `<div class="scan-item alpha-gold-blink" style="border-left: 5px solid var(--gold)">
                     <div style="text-align:right">
                         <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
@@ -380,7 +383,7 @@
             if (doc.exists) {
                 const data = doc.data();
                 if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
-                if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { switchTab('alpha'); }
+                if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); }
             }
         }
     }
@@ -397,7 +400,7 @@
             localStorage.setItem('sz_device_id', myId);
             if (data.deviceId && data.deviceId !== myId) { err.innerText = "⚠️ جهاز آخر!"; err.style.display = 'block'; return; }
             if (!data.deviceId) await db.collection("users").doc(k).update({ deviceId: myId });
-            localStorage.setItem('sz_ultimate_v1_key', k); switchTab('alpha'); 
+            localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); 
         } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
     }
     async function showSearch() {
@@ -408,7 +411,7 @@
             const spotData = await spotRes.json();
             const futData = await futRes.json();
             let spotList = spotData.symbols.filter(s => s.status === 'TRADING' && s.symbol.endsWith('USDT')).map(s => ({s: s.symbol, m: 'spot'}));
-            let futList = futList = futData.symbols.filter(s => s.status === 'TRADING' && s.contractType === 'PERPETUAL').map(s => ({s: s.symbol, m: 'futures'}));
+            let futList = futData.symbols.filter(s => s.status === 'TRADING' && s.contractType === 'PERPETUAL').map(s => ({s: s.symbol, m: 'futures'}));
             allCoins = [...spotList, ...futList];
         }
         searchCoins();
