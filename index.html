@@ -35,13 +35,11 @@
         #buy-sell-per { text-align:center; font-weight:bold; margin-bottom:10px; font-size: 14px; }
         #power-bar { text-align:center; margin-bottom:20px; display: flex; justify-content: center; gap: 4px; }
         .ball { width: 12px; height: 12px; border-radius: 50%; }
-
         .whale-live-box { background: rgba(8, 8, 8, 0.9); border: 1px solid var(--gold); border-radius: 10px; padding: 12px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center; }
         .whale-col { flex: 1; text-align: center; }
         .whale-label { font-size: 8px; color: #888; margin-bottom: 4px; }
         .whale-val { font-size: 14px; font-weight: bold; }
         .whale-sub { font-size: 9px; margin-top: 2px; }
-
         .row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #111; font-size: 13px; font-weight: bold; }
         .ice-card { background: var(--card); border: 1px solid var(--ghost); padding: 15px; border-radius: 12px; margin-top: 20px; width: 100%; box-sizing: border-box; }
         .ai-signal-box { background: linear-gradient(45deg, #080808, #111); border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; }
@@ -50,18 +48,15 @@
         #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; }
         .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
         .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
-        
         .nav-tabs { display: flex; gap: 5px; width: 95%; margin-bottom: 20px; flex-wrap: wrap; }
         .tab-btn { flex: 1; min-width: 80px; padding: 10px 5px; border-radius: 8px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 11px; }
         .tab-btn.active { background: var(--gold); color: #000; }
-
         .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        .alpha-tag { background: rgba(0, 210, 255, 0.1); color: var(--alpha); border: 1px solid var(--alpha); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .hunt-tag { background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .dump-tag { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
+        .alpha-tag { background: rgba(0, 210, 255, 0.1); color: var(--alpha); border: 1px solid var(--alpha); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
-
         @keyframes blink-gold { 0% { border-color: var(--gold); box-shadow: 0 0 8px var(--gold); } 50% { border-color: #555; box-shadow: none; } 100% { border-color: var(--gold); box-shadow: 0 0 8px var(--gold); } }
         .blink-border { animation: blink-gold 0.6s infinite; border-width: 2px !important; }
     </style>
@@ -85,6 +80,7 @@
             <div class="sezar-brand"><span class="sub-text" style="color:var(--alpha);">ALPHA WEB3</span></div>
             <div class="nav-tabs">
                 <button class="tab-btn active" onclick="switchTab('alpha')" style="border-color: var(--alpha); color: var(--alpha);">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
@@ -148,34 +144,17 @@
                 <p id="current-coin-name" style="font-size:11px; margin:0;">[ BTCUSDT ]</p>
             </div>
             <div class="price-box" id="coin-price">Loading...</div>
-            <div id="chart-container">
-                <iframe id="chart-frame" src=""></iframe>
+            <div id="chart-container"><iframe id="chart-frame" src=""></iframe>
                 <div id="sell-wall-line" class="chart-wall-line" style="background: var(--red); display: none;"><span class="wall-label" style="color: var(--red);">SELL: <span id="sw-vol"></span></span></div>
                 <div id="buy-wall-line" class="chart-wall-line" style="background: var(--green); display: none;"><span class="wall-label" style="color: var(--green);">BUY: <span id="bw-vol"></span></span></div>
             </div>
             <div class="timer-text">تحديث السيولة خلال: <span id="timer">30</span> ثانية</div>
-            <div id="buy-sell-per">
-                <button class="inline-btn" onclick="setZoom(0.6)">-</button>
-                <span id="buy-sell-display">BUY: --% | SELL: --%</span>
-                <button class="inline-btn" onclick="setZoom(1.0)">🏠</button>
-            </div>
+            <div id="buy-sell-per"><button class="inline-btn" onclick="setZoom(0.6)">-</button><span id="buy-sell-display">BUY: --% | SELL: --%</span><button class="inline-btn" onclick="setZoom(1.0)">🏠</button></div>
             <div id="power-bar" style="flex-direction: row-reverse;"></div>
             <div class="whale-live-box">
-                <div class="whale-col">
-                    <div class="whale-label">SHORT WHALES</div>
-                    <div id="sw-count-whale" class="whale-val" style="color:var(--red)">--</div>
-                    <div id="sw-vol-whale" class="whale-sub" style="color:#888">$0.00M</div>
-                </div>
-                <div class="whale-col" style="border-left:1px solid #222; border-right:1px solid #222;">
-                    <div class="whale-label">NET RATIO</div>
-                    <div class="whale-val" style="color:var(--gold); font-size:11px;">FUTURES</div>
-                    <div id="net-perc" class="whale-sub" style="color:var(--gold)">0.0%</div>
-                </div>
-                <div class="whale-col">
-                    <div class="whale-label">LONG WHALES</div>
-                    <div id="lw-count" class="whale-val" style="color:var(--green)">--</div>
-                    <div id="lw-vol" class="whale-sub" style="color:#888">$0.00M</div>
-                </div>
+                <div class="whale-col"><div class="whale-label">SHORT WHALES</div><div id="sw-count-whale" class="whale-val" style="color:var(--red)">--</div><div id="sw-vol-whale" class="whale-sub" style="color:#888">$0.00M</div></div>
+                <div class="whale-col" style="border-left:1px solid #222; border-right:1px solid #222;"><div class="whale-label">NET RATIO</div><div class="whale-val" style="color:var(--gold); font-size:11px;">FUTURES</div><div id="net-perc" class="whale-sub" style="color:var(--gold)">0.0%</div></div>
+                <div class="whale-col"><div class="whale-label">LONG WHALES</div><div id="lw-count" class="whale-val" style="color:var(--green)">--</div><div id="lw-vol" class="whale-sub" style="color:#888">$0.00M</div></div>
             </div>
             <div id="s-walls"></div>
             <div class="ai-signal-box">
@@ -309,6 +288,35 @@
         if(!k) return;
         const doc = await db.collection("users").doc(k).get();
         if (doc.exists) { localStorage.setItem('sz_ultimate_v1_key', k); switchTab('alpha'); } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
+    }
+
+    async function showSearch() {
+        document.getElementById('auth-screen').style.display = 'none';
+        switchTab('search');
+        if (allCoins.length === 0) {
+            const [spotRes, futRes] = await Promise.all([ fetch('https://api.binance.com/api/v3/exchangeInfo'), fetch('https://fapi.binance.com/fapi/v1/exchangeInfo') ]);
+            const spotData = await spotRes.json();
+            const futData = await futRes.json();
+            let spotList = spotData.symbols.filter(s => s.status === 'TRADING' && s.symbol.endsWith('USDT')).map(s => ({s: s.symbol, m: 'spot'}));
+            let futList = futData.symbols.filter(s => s.status === 'TRADING' && s.contractType === 'PERPETUAL').map(s => ({s: s.symbol, m: 'futures'}));
+            allCoins = [...spotList, ...futList];
+        }
+        searchCoins();
+    }
+    function searchCoins() {
+        const query = document.getElementById('search-input').value.toUpperCase();
+        const list = document.getElementById('results-list');
+        list.innerHTML = '';
+        let uniqueCoins = {};
+        allCoins.filter(c => c.s.includes(query)).forEach(c => { if (!uniqueCoins[c.s] || c.m === 'futures') uniqueCoins[c.s] = c; });
+        Object.values(uniqueCoins).slice(0, 15).forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'coin-item';
+            const color = c.m === 'futures' ? '#f0b90b' : '#00ffcc';
+            item.innerHTML = `<div><span class="coin-type" style="border:1px solid ${color}; color:${color}">${c.m.toUpperCase()}</span><span style="font-weight:bold;">${c.s}</span></div><div style="color:var(--gold); font-size:11px;">تحليل 🔭</div>`;
+            item.onclick = () => startRadar(c.s, c.m);
+            list.appendChild(item);
+        });
     }
 
     function startRadar(symbol, mode) {
