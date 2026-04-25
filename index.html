@@ -7,7 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --alpha: #a855f7; } /* تم توحيد اللون مع القناص */
+        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --alpha: #a855f7; } /* تم توحيد اللون مع البنفسجي */
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
         .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
@@ -36,7 +36,7 @@
         #power-bar { text-align:center; margin-bottom:20px; display: flex; justify-content: center; gap: 4px; }
         .ball { width: 12px; height: 12px; border-radius: 50%; }
 
-        .whale-live-box { background: rgba(8, 8, 8, 0.9); border: 1px solid var(--gold); border-radius: 10px; padding: 12px; margin: 15px 0; display: flex; justify(content: space-between; align-items: center; }
+        .whale-live-box { background: rgba(8, 8, 8, 0.9); border: 1px solid var(--gold); border-radius: 10px; padding: 12px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center; }
         .whale-col { flex: 1; text-align: center; }
         .whale-label { font-size: 8px; color: #888; margin-bottom: 4px; }
         .whale-val { font-size: 14px; font-weight: bold; }
@@ -59,18 +59,18 @@
         .hunt-tag { background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .dump-tag { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         
-        /* Alpha Web3 تنسيق الألوان الجديد ليكون مثل القناص */
+        /* Alpha Web3 - نفس تنسيق القناص بالضبط */
         .alpha-tag { background: rgba(168, 85, 247, 0.1); color: var(--ghost); border: 1px solid var(--ghost); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         
         .whale-alert { border-color: var(--gold) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
 
-        /* الأنيميشن الموحد */
-        @keyframes blink-ghost { 0% { border-color: var(--ghost); box-shadow: 0 0 8px var(--ghost); } 50% { border-color: #555; box-shadow: none; } 100% { border-color: var(--ghost); box-shadow: 0 0 8px var(--ghost); } }
         @keyframes blink-gold { 0% { border-color: var(--gold); box-shadow: 0 0 8px var(--gold); } 50% { border-color: #555; box-shadow: none; } 100% { border-color: var(--gold); box-shadow: 0 0 8px var(--gold); } }
+        @keyframes blink-ghost { 0% { border-color: var(--ghost); box-shadow: 0 0 10px var(--ghost); } 50% { border-color: #222; box-shadow: none; } 100% { border-color: var(--ghost); box-shadow: 0 0 10px var(--ghost); } }
+        
         .blink-border { animation: blink-gold 0.6s infinite; border-width: 2px !important; }
-        .alpha-blink { animation: blink-ghost 0.6s infinite; border-width: 2px !important; }
+        .alpha-blink { animation: blink-ghost 0.6s infinite; border-width: 2px !important; } /* تأثير الوميض البنفسجي */
     </style>
 </head>
 <body onload="checkAuth()">
@@ -243,7 +243,7 @@
             let candidates = data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 1000000).sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent)).slice(0, 15);
             let html = '';
             candidates.forEach(c => {
-                // استخدام أنيميشن ومؤشر البنفسجي ليتطابق مع القناص
+                // تم تعديل الألوان والوميض ليتطابق مع القناص تماماً
                 html += `<div class="scan-item alpha-blink" style="border-left: 5px solid var(--ghost)">
                     <div style="text-align:right">
                         <div style="color:var(--ghost); font-weight:bold; font-size:16px; display:flex; align-items:center;">
@@ -382,7 +382,7 @@
             if (doc.exists) {
                 const data = doc.data();
                 if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
-                if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { switchTab('alpha'); }
+                if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); }
             }
         }
     }
@@ -399,7 +399,7 @@
             localStorage.setItem('sz_device_id', myId);
             if (data.deviceId && data.deviceId !== myId) { err.innerText = "⚠️ جهاز آخر!"; err.style.display = 'block'; return; }
             if (!data.deviceId) await db.collection("users").doc(k).update({ deviceId: myId });
-            localStorage.setItem('sz_ultimate_v1_key', k); switchTab('alpha'); 
+            localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); 
         } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
     }
     async function showSearch() {
