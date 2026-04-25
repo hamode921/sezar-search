@@ -61,6 +61,9 @@
         .whale-alert { border-color: var(--gold) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
+
+        @keyframes blink-gold { 0% { border-color: var(--gold); box-shadow: 0 0 5px var(--gold); } 50% { border-color: transparent; box-shadow: none; } 100% { border-color: var(--gold); box-shadow: 0 0 5px var(--gold); } }
+        .blink-border { animation: blink-gold 0.5s infinite; }
     </style>
 </head>
 <body onload="checkAuth()">
@@ -190,6 +193,7 @@
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt, huntInt, pdInt;
     let sigBuffer = { buy: 0, sell: 0 };
     let lastVolMap = new Map();
+    let lockedScannerCoins = new Map();
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
@@ -201,9 +205,64 @@
         document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
         
         clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt);
-        if(tab === 'scanner') scanInt = setInterval(updateScanner, 5000);
+        if(tab === 'scanner') { updateScanner(); scanInt = setInterval(updateScanner, 5000); }
         if(tab === 'whale-hunt') { updateWhaleHunt(); huntInt = setInterval(updateWhaleHunt, 10000); }
         if(tab === 'pump-dump') { updatePumpDump(); pdInt = setInterval(updatePumpDump, 5000); }
+    }
+
+    async function updateScanner() {
+        try {
+            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+            const data = await res.json();
+            const list = document.getElementById('scanner-list');
+            const now = Date.now();
+
+            // تنظيف العملات المنتهي وقت تثبيتها
+            for (let [sym, expire] of lockedScannerCoins) { if (now > expire) lockedScannerCoins.delete(sym); }
+
+            let liveCandidates = data.filter(c => {
+                const change = parseFloat(c.priceChangePercent);
+                const volume = parseFloat(c.quoteVolume);
+                return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 5000000;
+            }).map(c => {
+                const currentVol = parseFloat(c.quoteVolume);
+                const prevVol = lastVolMap.get(c.symbol) || currentVol;
+                const volIncrease = prevVol > 0 ? ((currentVol - prevVol) / prevVol) * 100 : 0;
+                lastVolMap.set(c.symbol, currentVol);
+                return { ...c, volIncrease };
+            }).filter(c => c.volIncrease > 0.8).sort((a,b) => b.volIncrease - a.volIncrease);
+
+            // تثبيت العملات الجديدة المكتشفة لـ 30 ثانية
+            liveCandidates.forEach(c => { if(!lockedScannerCoins.has(c.symbol)) lockedScannerCoins.set(c.symbol, now + 30000); });
+
+            let finalDisplay = [];
+            // إضافة العملات المثبتة أولاً
+            for (let [sym, expire] of lockedScannerCoins) {
+                const coinData = data.find(d => d.symbol === sym);
+                if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
+            }
+            
+            // إضافة باقي العملات المكتشفة حالياً (إذا لم تكن مثبتة أصلاً)
+            liveCandidates.forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
+
+            let htmlContent = '';
+            finalDisplay.slice(0, 12).forEach(c => {
+                const change = parseFloat(c.priceChangePercent);
+                const isLocked = c.isLocked || false;
+                htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isLocked ? 'var(--gold)' : 'var(--ghost)'}">
+                    <div style="text-align:right">
+                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">
+                            ${isLocked ? '🎯 ' : '🛰️ '}${c.symbol} 
+                            ${isLocked ? `<span style="font-size:10px; color:var(--red); font-weight:bold;"> [رمشة: ${c.timeLeft}s]</span>` : ''}
+                        </div>
+                        <div style="color:var(--green); font-size:12px; font-weight:bold;">PRE-PUMP: ${change}%</div>
+                        <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
+                    </div>
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
+                </div>`;
+            });
+            list.innerHTML = htmlContent || '<div style="color:#555; margin-top:20px;">جاري ترقب ميم جاهز للانفجار...</div>';
+        } catch (e) {}
     }
 
     async function updateWhaleHunt() {
@@ -219,7 +278,7 @@
                 const vol = parseFloat(c.quoteVolume);
                 const score = (vol / 50000000) + (parseFloat(c.priceChangePercent) * 2);
                 return { ...c, huntScore: score };
-            }).sort((a,b) => b.huntScore - a.auntScore).slice(0, 10);
+            }).sort((a,b) => b.huntScore - a.huntScore).slice(0, 10);
             let html = '';
             candidates.forEach(c => {
                 const isStrong = c.huntScore > 5;
@@ -239,13 +298,11 @@
         } catch (e) {}
     }
 
-    // وظيفة رادار Pump & Dump الجديدة
     async function updatePumpDump() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('pump-dump-list');
-            
             let candidates = data.filter(c => {
                 const vol = parseFloat(c.quoteVolume);
                 const chg = parseFloat(c.priceChangePercent);
@@ -254,7 +311,6 @@
                 const chg = parseFloat(c.priceChangePercent);
                 return { ...c, isPump: chg > 0 };
             }).sort((a,b) => Math.abs(parseFloat(b.priceChangePercent)) - Math.abs(parseFloat(a.priceChangePercent))).slice(0, 12);
-
             let html = '';
             candidates.forEach(c => {
                 html += `<div class="scan-item" style="border-right: 5px solid ${c.isPump ? 'var(--green)' : 'var(--red)'}">
@@ -332,34 +388,6 @@
             item.onclick = () => startRadar(c.s, c.m);
             list.appendChild(item);
         });
-    }
-    async function updateScanner() {
-        try {
-            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const list = document.getElementById('scanner-list');
-            let candidates = data.filter(c => {
-                const change = parseFloat(c.priceChangePercent);
-                const volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 5000000;
-            }).map(c => {
-                const currentVol = parseFloat(c.quoteVolume);
-                const prevVol = lastVolMap.get(c.symbol) || currentVol;
-                const volIncrease = prevVol > 0 ? ((currentVol - prevVol) / prevVol) * 100 : 0;
-                lastVolMap.set(c.symbol, currentVol);
-                return { ...c, volIncrease };
-            }).sort((a,b) => b.volIncrease - a.volIncrease).slice(0, 10);
-            if (candidates.length > 0) {
-                let htmlContent = '';
-                candidates.forEach(c => {
-                    const change = parseFloat(c.priceChangePercent);
-                    const isSpike = c.volIncrease > 0.8; 
-                    const isBoldEntry = isSpike && (change > 2 && change < 10);
-                    htmlContent += `<div class="scan-item ${isSpike ? 'spike' : ''}" style="border-left: 5px solid ${isBoldEntry ? 'var(--green)' : 'var(--ghost)'}"><div style="text-align:right"><div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">${isSpike ? '🚀 ' : ''}${c.symbol}${isBoldEntry ? '<span class="bold-tag">BOLD ENTRY 🔥</span>' : ''}</div><div style="color:var(--green); font-size:12px; font-weight:bold;">PRE-PUMP: ${change}%</div><div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div></div><button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button></div>`;
-                });
-                list.innerHTML = htmlContent;
-            }
-        } catch (e) {}
     }
     function startRadar(symbol, mode) {
         currentSymbol = symbol; currentMode = mode; switchTab('radar');
