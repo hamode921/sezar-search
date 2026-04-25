@@ -193,7 +193,7 @@
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt, huntInt, pdInt;
     let sigBuffer = { buy: 0, sell: 0 };
     let lastVolMap = new Map();
-    let lockedScannerCoins = new Map();
+    let lockedScannerCoins = new Map(); // لنظام تثبيت العملات
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
@@ -217,8 +217,10 @@
             const list = document.getElementById('scanner-list');
             const now = Date.now();
 
+            // تنظيف العملات التي انتهى وقت تثبيتها
             for (let [sym, expire] of lockedScannerCoins) { if (now > expire) lockedScannerCoins.delete(sym); }
 
+            // تصفية العملات التي تحقق شرط القنص
             let liveCandidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
@@ -231,14 +233,17 @@
                 return { ...c, volIncrease };
             }).filter(c => c.volIncrease > 0.8).sort((a,b) => b.volIncrease - a.volIncrease);
 
+            // تثبيت العملات الجديدة المكتشفة لمدة 30 ثانية
             liveCandidates.forEach(c => { if(!lockedScannerCoins.has(c.symbol)) lockedScannerCoins.set(c.symbol, now + 30000); });
 
             let finalDisplay = [];
+            // عرض العملات المثبتة أولاً
             for (let [sym, expire] of lockedScannerCoins) {
                 const coinData = data.find(d => d.symbol === sym);
                 if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
             }
             
+            // إضافة باقي العملات المكتشفة حالياً
             liveCandidates.forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
 
             let htmlContent = '';
@@ -248,7 +253,7 @@
                 htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isLocked ? 'var(--gold)' : 'var(--ghost)'}">
                     <div style="text-align:right">
                         <div style="color:var(--gold); font-weight:bold; font-size:16px;">
-                            ${isLocked ? '🎯 ' : '🛰️ '}${c.symbol} 
+                            ${isLocked ? '🎯 ' : '🛰️ '}${c.symbol}
                             ${isLocked ? `<span style="font-size:10px; color:var(--red); font-weight:bold;"> [رمشة: ${c.timeLeft}s]</span>` : ''}
                         </div>
                         <div style="color:var(--green); font-size:12px; font-weight:bold;">PRE-PUMP: ${change}%</div>
