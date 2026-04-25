@@ -56,10 +56,8 @@
         .tab-btn.active { background: var(--gold); color: #000; }
 
         .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        
-        /* تصميم الكتابة بجانب الاسم */
-        .hunt-label-inline { display: inline-flex; align-items: center; gap: 4px; background: rgba(34, 197, 94, 0.1); border: 1px solid var(--green); padding: 1px 5px; border-radius: 4px; color: var(--green); font-size: 10px; font-weight: 900; margin-right: 8px; vertical-align: middle; }
-
+        .hunt-tag { background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
+        .dump-tag { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .whale-alert { border-color: var(--gold) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
@@ -185,13 +183,15 @@
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
         document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
         document.getElementById('whale-hunt-screen').style.display = tab === 'whale-hunt' ? 'block' : 'none';
-        document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
-        
+        document.getElementById('radar-ui').style.display = tab === 'radar' ? 'none'; // التعديل هنا لضمان الإخفاء الصحيح
+        if (tab === 'radar') document.getElementById('radar-ui').style.display = 'block';
+
         clearInterval(scanInt); clearInterval(huntInt);
         if(tab === 'scanner') scanInt = setInterval(updateScanner, 5000);
         if(tab === 'whale-hunt') { updateWhaleHunt(); huntInt = setInterval(updateWhaleHunt, 10000); }
     }
 
+    // وظيفة صيد الحيتان المطورة لاكتشاف الـ Pump والـ Dump
     async function updateWhaleHunt() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
@@ -199,30 +199,42 @@
             const list = document.getElementById('whale-hunt-list');
             
             let candidates = data.filter(c => {
-                const vol = parseFloat(c.quoteVolume);
-                const chg = parseFloat(c.priceChangePercent);
-                return c.symbol.endsWith('USDT') && chg >= -1.5 && chg <= 3.5 && vol > 10000000;
+                const change = parseFloat(c.priceChangePercent);
+                const volume = parseFloat(c.quoteVolume);
+                return c.symbol.endsWith('USDT') && volume > 10000000;
             }).map(c => {
                 const vol = parseFloat(c.quoteVolume);
                 const chg = parseFloat(c.priceChangePercent);
-                // معادلة القوة: فوليوم عالي مع أقل تذبذب سعري = تجميع حقيقي
-                let score = (vol / 45000000) - Math.abs(chg); 
-                return { ...c, huntScore: score };
-            }).sort((a,b) => b.huntScore - a.huntScore).slice(0, 12);
+                
+                // حساب معامل "اختلال التوازن" (Imbalance)
+                // إذا كان التغير السعري طفيفاً مقابل فوليوم ضخم = تجميع (Pump القادم)
+                // إذا كان الهبوط سريعاً مع فوليوم غير مسبوق = انهيار (Dump الحاصل)
+                let pumpScore = (vol / 50000000) - Math.abs(chg);
+                let dumpDanger = (chg < -5 && vol > 20000000); 
+
+                return { ...c, pumpScore, dumpDanger };
+            }).sort((a,b) => b.pumpScore - a.pumpScore).slice(0, 15);
 
             let html = '';
             candidates.forEach(c => {
-                const isStrong = c.huntScore > 5;
-                html += `<div class="scan-item ${isStrong ? 'whale-alert' : ''}">
+                const isPumpReady = c.pumpScore > 6;
+                const isDumping = c.dumpDanger;
+                
+                html += `<div class="scan-item ${isPumpReady ? 'whale-alert' : ''}" style="${isDumping ? 'border-right: 5px solid var(--red);' : ''}">
                     <div style="text-align:right">
-                        <div style="display:flex; align-items:center; color:var(--gold); font-weight:bold; font-size:16px;">
-                            ${isStrong ? '🐋 ' : ''}${c.symbol} 
-                            ${isStrong ? '<span class="hunt-label-inline">ACCUMULATION 🔥</span>' : ''}
+                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">
+                            ${isPumpReady ? '🐋 ' : ''}${isDumping ? '⚠️ ' : ''}${c.symbol}
+                            ${isPumpReady ? '<span class="hunt-tag">ACCUMULATION 🔥</span>' : ''}
+                            ${isDumping ? '<span class="dump-tag">DANGER: DUMPING 📉</span>' : ''}
                         </div>
-                        <div style="color:var(--green); font-size:11px; margin-top:2px;">PRE-EXPLOSION: +5% ~ +15%</div>
+                        <div style="color:${isDumping ? 'var(--red)' : 'var(--green)'}; font-size:11px;">
+                            ${isDumping ? 'LIQUIDITY WITHDRAWN - EXIT NOW' : 'PRE-EXPLOSION: +5% ~ +15%'}
+                        </div>
                         <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | CHG: ${c.priceChangePercent}%</div>
                     </div>
-                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--green); color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">صيد 🎯</button>
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${isDumping ? 'var(--red)' : 'var(--green)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                        ${isDumping ? 'هرب 🏃' : 'صيد 🎯'}
+                    </button>
                 </div>`;
             });
             list.innerHTML = html;
