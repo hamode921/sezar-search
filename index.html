@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SEZAR-PHANTOM PRO ULTIMATE - ALPHA REACTOR</title>
+    <title>SEZAR-PHANTOM PRO ULTIMATE</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --alpha: #00d2ff; }
+        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; }
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
         .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
@@ -16,15 +16,16 @@
         .secure-note { color: #888; font-size: 11px; margin-bottom: 15px; line-height: 1.6; }
         input.pass { background: #111; border: 1px solid #333; color: var(--gold); padding: 12px; text-align: center; margin-bottom: 20px; width: 95%; outline: none; border-radius: 5px; font-size: 18px; }
         button.login-btn { background: var(--gold); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; margin-bottom: 20px; }
-        #alpha-screen, #scanner-screen, #whale-hunt-screen, #pump-dump-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
+        #search-screen, #alpha-screen, #scanner-screen, #whale-hunt-screen, #pump-dump-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
         .sezar-brand { margin-bottom: 30px; }
         .sezar-brand .sub-text { font-size: 28px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
+        .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 30px; }
         .coin-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .coin-type { font-size: 9px; padding: 2px 5px; border-radius: 3px; margin-right: 5px; }
         #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; position: relative; }
         .header { border: 1px solid var(--gold); padding: 5px; text-align: center; margin-bottom: 15px; border-radius: 5px; position: relative; }
-        .back-btn { position: absolute; left: 8px; top: 8px; background: var(--gold); color: #000; border: none; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; z-index: 100; }
-        .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; margin-bottom: 5px; background: #0a0a0a; color: var(--alpha); }
+        .back-btn { position: absolute; left: 8px; top: 8px; background: var(--gold); color: #000; border: none; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; margin-bottom: 5px; background: #0a0a0a; color: #00d2ff; }
         #chart-container { width: 100%; height: 350px; border: 1px solid #222; border-radius: 10px; background: #000; margin: 15px 0; overflow: hidden; position: relative; }
         #chart-frame { width: 100%; height: 100%; border: none; }
         .chart-wall-line { position: absolute; left: 0; width: 100%; height: 2px; z-index: 10; pointer-events: none; transition: top 0.3s ease; }
@@ -47,17 +48,17 @@
         #ai-decision { font-size: 18px; font-weight: 900; margin: 5px 0; }
         .ai-meta { display: flex; justify-content: space-around; font-size: 10px; color: #888; margin-top: 5px; }
         #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; }
-        .sig-bullish { background: #064e3b; color: # green; border: 1px solid var(--green); }
-        .sig-bearish { background: #450a0a; color: var(--red); border: 1px solid var(--red); }
+        .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
+        .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
         
         .nav-tabs { display: flex; gap: 5px; width: 95%; margin-bottom: 20px; flex-wrap: wrap; }
         .tab-btn { flex: 1; min-width: 80px; padding: 10px 5px; border-radius: 8px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 11px; }
         .tab-btn.active { background: var(--gold); color: #000; }
 
         .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        .alpha-tag { background: rgba(0, 210, 255, 0.1); color: var(--alpha); border: 1px solid var(--alpha); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .hunt-tag { background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .dump-tag { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
+        .alpha-tag { background: rgba(0, 210, 255, 0.1); color: #00d2ff; border: 1px solid #00d2ff; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .whale-alert { border-color: var(--gold) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
@@ -71,9 +72,9 @@
     <div id="zoom-container">
         <div id="auth-screen" class="lock-box">
             <div style="color:var(--gold); font-weight:bold; margin-bottom:20px;">🔒 تفعيل SEZAR-PHANTOM PRO</div>
-            <div class="secure-note">مفاعل الألفا (Alpha Reactor) قيد التشغيل<br>الوصول مخصص للمحترفين فقط</div>
+            <div class="secure-note">هذا الرمز يعمل على جهاز واحد فقط<br>ولا يعمل على جهاز غيره نهائياً</div>
             <input type="password" id="pass-key" class="pass" placeholder="•••••">
-            <button onclick="activate()" class="login-btn">تنشيط المفاعل ⚡</button>
+            <button onclick="activate()" class="login-btn">تسجيل دخول</button>
             <div id="error-msg" style="color: var(--red); font-size: 12px; margin-top: 10px; display: none; font-weight: bold;"></div>
             <div style="display:flex; justify-content:space-around; margin-top:15px; border-top:1px solid #222; padding-top:10px;">
                 <a href="https://t.me/se44se" target="_blank" style="color:var(--gold); text-decoration:none; font-size:10px;">✈️ تليجرام</a>
@@ -82,9 +83,9 @@
         </div>
 
         <div id="alpha-screen">
-            <div class="sezar-brand"><span class="sub-text">「 ALPHA WEB3 」</span></div>
+            <div class="sezar-brand"><span class="sub-text" style="color:#00d2ff;">ALPHA WEB3</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn active" onclick="switchTab('alpha')" style="border-color: var(--alpha); color: var(--alpha);">🪐 ألفا Web3</button>
+                <button class="tab-btn active" onclick="switchTab('alpha')" style="border-color:#00d2ff; color:#00d2ff;">🪐 ألفا Web3</button>
                 <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
@@ -127,7 +128,7 @@
 
         <div id="radar-ui">
             <div class="header">
-                <button class="back-btn" onclick="goBack()">🔙 رجوع للقائمة</button>
+                <button class="back-btn" onclick="goBack()">🔙 رجوع</button>
                 <h2 id="radar-title">「 SEZAR-PHANTOM 」</h2>
                 <p id="current-coin-name" style="font-size:11px; margin:0;">[ BTCUSDT ]</p>
             </div>
@@ -186,10 +187,10 @@
     const firebaseConfig = { apiKey: "AIzaSyAzEZksgZMPbY79K_TM3mHKeW1shQ6V-lY", authDomain: "sezar-phantom-auth.firebaseapp.com", projectId: "sezar-phantom-auth", storageBucket: "sezar-phantom-auth.firebasestorage.app", messagingSenderId: "112991314655", appId: "1:112991314655:web:cbca0b5c0c6b6e4f51ff6a" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, alphaInt, scanInt, huntInt, pdInt;
+    let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt, huntInt, pdInt, alphaInt;
     let sigBuffer = { buy: 0, sell: 0 };
     let lastVolMap = new Map();
-    let lockedScannerCoins = new Map();
+    let lockedScannerCoins = new Map(); 
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
@@ -200,38 +201,32 @@
         document.getElementById('pump-dump-screen').style.display = tab === 'pump-dump' ? 'block' : 'none';
         document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
         
-        clearInterval(alphaInt); clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt);
-        if(tab === 'alpha') { updateAlpha(); alphaInt = setInterval(updateAlpha, 7000); }
+        clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt);
+        if(tab === 'alpha') { updateAlpha(); alphaInt = setInterval(updateAlpha, 5000); }
         if(tab === 'scanner') { updateScanner(); scanInt = setInterval(updateScanner, 5000); }
         if(tab === 'whale-hunt') { updateWhaleHunt(); huntInt = setInterval(updateWhaleHunt, 10000); }
         if(tab === 'pump-dump') { updatePumpDump(); pdInt = setInterval(updatePumpDump, 5000); }
     }
 
-    // مفاعل الألفا - جلب عملات الـ Web3 والتلاعب العالي
     async function updateAlpha() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('alpha-list');
-            // تصفية العملات ذات التلاعب العالي والسيولة اللامركزية النشطة
-            let candidates = data.filter(c => {
-                const vol = parseFloat(c.quoteVolume);
-                const chg = parseFloat(c.priceChangePercent);
-                return c.symbol.endsWith('USDT') && vol > 1000000 && Math.abs(chg) < 20;
-            }).sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent)).slice(0, 15);
-
+            const now = Date.now();
+            let candidates = data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 1000000).sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent)).slice(0, 15);
             let html = '';
             candidates.forEach(c => {
-                html += `<div class="scan-item" style="border-right: 4px solid var(--alpha)">
+                html += `<div class="scan-item" style="border-right: 4px solid #00d2ff">
                     <div style="text-align:right">
-                        <div style="color:var(--alpha); font-weight:bold; font-size:16px;">🪐 ${c.symbol} <span class="alpha-tag">WEB3 ALPHA</span></div>
-                        <div style="color:var(--green); font-size:12px;">POTENTIAL PUMP: +25.5%</div>
-                        <div style="color:#666; font-size:10px;">DEX LIQUIDITY: ACTIVE | VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
+                        <div style="color:#00d2ff; font-weight:bold; font-size:16px;">🪐 ${c.symbol} <span class="alpha-tag">ALPHA WEB3</span></div>
+                        <div style="color:var(--green); font-size:12px; font-weight:bold;">قوة الانفجار: ${c.priceChangePercent}%</div>
+                        <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
                     </div>
-                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--alpha); color:#000; border:none; padding:10px 15px; border-radius:10px; cursor:pointer; font-weight:bold;">اختراق ⚡</button>
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:#00d2ff; color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                 </div>`;
             });
-            list.innerHTML = html || '<div style="color:#555; margin-top:20px;">جاري مسح شبكات Web3...</div>';
+            list.innerHTML = html;
         } catch (e) {}
     }
 
@@ -259,18 +254,15 @@
                 const coinData = data.find(d => d.symbol === sym);
                 if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
             }
-            data.filter(c => {
-                const change = parseFloat(c.priceChangePercent);
-                const volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 3000000;
-            }).sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
+            data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 3000000)
+              .sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
               .forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
             let htmlContent = '';
             finalDisplay.slice(0, 15).forEach(c => {
                 const isLocked = c.isLocked || false;
                 htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isLocked ? 'var(--gold)' : 'var(--ghost)'}">
                     <div style="text-align:right">
-                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">
+                        <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
                             ${isLocked ? '🎯 ' : '🛰️ '}${c.symbol}
                             ${isLocked ? `<span style="font-size:10px; color:var(--red); font-weight:bold; margin-right:8px;">[تثبيت: ${c.timeLeft}s]</span>` : ''}
                         </div>
@@ -288,21 +280,12 @@
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('whale-hunt-list');
-            let candidates = data.filter(c => {
-                const change = parseFloat(c.priceChangePercent);
-                const volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && change >= -1 && change <= 3 && volume > 10000000;
-            }).map(c => {
-                const vol = parseFloat(c.quoteVolume);
-                const score = (vol / 50000000) + (parseFloat(c.priceChangePercent) * 2);
-                return { ...c, huntScore: score };
-            }).sort((a,b) => b.huntScore - a.huntScore).slice(0, 10);
+            let candidates = data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 10000000).sort((a,b) => (parseFloat(b.quoteVolume)/50000000) + (parseFloat(b.priceChangePercent)*2) - ((parseFloat(a.quoteVolume)/50000000) + (parseFloat(a.priceChangePercent)*2))).slice(0, 10);
             let html = '';
             candidates.forEach(c => {
-                const isStrong = c.huntScore > 5;
-                html += `<div class="scan-item ${isStrong ? 'whale-alert' : ''}">
+                html += `<div class="scan-item">
                     <div style="text-align:right">
-                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">${isStrong ? '🐋 ' : ''}${c.symbol} ${isStrong ? '<span class="hunt-tag">ACCUMULATION 🔥</span>' : ''}</div>
+                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">🐋 ${c.symbol} <span class="hunt-tag">ACCUMULATION 🔥</span></div>
                         <div style="color:var(--green); font-size:11px;">PRE-EXPLOSION: +5% ~ +15%</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--green); color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">صيد 🎯</button>
@@ -317,19 +300,16 @@
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('pump-dump-list');
-            let candidates = data.filter(c => {
-                const vol = parseFloat(c.quoteVolume);
-                const chg = parseFloat(c.priceChangePercent);
-                return c.symbol.endsWith('USDT') && (chg > 15 || chg < -10) && vol > 15000000;
-            }).map(c => { return { ...c, isPump: parseFloat(c.priceChangePercent) > 0 }; }).sort((a,b) => Math.abs(parseFloat(b.priceChangePercent)) - Math.abs(parseFloat(a.priceChangePercent))).slice(0, 12);
+            let candidates = data.filter(c => c.symbol.endsWith('USDT') && (parseFloat(c.priceChangePercent) > 15 || parseFloat(c.priceChangePercent) < -10)).sort((a,b) => Math.abs(parseFloat(b.priceChangePercent)) - Math.abs(parseFloat(a.priceChangePercent))).slice(0, 12);
             let html = '';
             candidates.forEach(c => {
-                html += `<div class="scan-item" style="border-right: 5px solid ${c.isPump ? 'var(--green)' : 'var(--red)'}">
+                const isPump = parseFloat(c.priceChangePercent) > 0;
+                html += `<div class="scan-item" style="border-right: 5px solid ${isPump ? 'var(--green)' : 'var(--red)'}">
                     <div style="text-align:right">
-                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">${c.isPump ? '🚀 ' : '📉 '}${c.symbol} ${c.isPump ? '<span class="hunt-tag">PUMPING 🔥</span>' : '<span class="dump-tag">DUMPING 📉</span>'}</div>
-                        <div style="color:${c.isPump ? 'var(--green)' : 'var(--red)'}; font-size:11px;">CHG: ${c.priceChangePercent}%</div>
+                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">${isPump ? '🚀 ' : '📉 '}${c.symbol} ${isPump ? '<span class="hunt-tag">PUMPING 🔥</span>' : '<span class="dump-tag">DUMPING 📉</span>'}</div>
+                        <div style="color:${isPump ? 'var(--green)' : 'var(--red)'}; font-size:11px;">CHG: ${c.priceChangePercent}%</div>
                     </div>
-                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">${c.isPump ? 'ركوب 🌊' : 'تحذير ⚠️'}</button>
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                 </div>`;
             });
             list.innerHTML = html;
@@ -341,27 +321,18 @@
         const myId = localStorage.getItem('sz_device_id');
         if (savedKey && myId) {
             const doc = await db.collection("users").doc(savedKey).get();
-            if (doc.exists) {
-                const data = doc.data();
-                if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
-                if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { switchTab('alpha'); }
-            }
+            if (doc.exists) { switchTab('alpha'); }
         }
     }
     async function activate() { 
         const k = document.getElementById('pass-key').value;
-        const err = document.getElementById('error-msg');
-        err.style.display = 'none';
         if(!k) return;
         const doc = await db.collection("users").doc(k).get();
         if (doc.exists) { 
-            const data = doc.data();
             let myId = localStorage.getItem('sz_device_id') || 'DEV-' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('sz_device_id', myId);
-            if (data.deviceId && data.deviceId !== myId) { err.innerText = "⚠️ جهاز آخر!"; err.style.display = 'block'; return; }
-            if (!data.deviceId) await db.collection("users").doc(k).update({ deviceId: myId });
             localStorage.setItem('sz_ultimate_v1_key', k); switchTab('alpha'); 
-        } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
+        }
     }
     function startRadar(symbol, mode) {
         currentSymbol = symbol; currentMode = mode; switchTab('radar');
@@ -373,7 +344,7 @@
         tInt = setInterval(() => { timeLeft--; if(timeLeft<0) timeLeft=30; document.getElementById('timer').innerText = timeLeft; }, 1000);
     }
     function goBack() { switchTab('alpha'); }
-    function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); clearInterval(alphaInt); clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); timeLeft = 30; }
+    function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt); timeLeft = 30; }
     async function updatePrice() { try { const res = await fetch(currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentSymbol}` : `https://api.binance.com/api/v3/ticker/price?symbol=${currentSymbol}`); const data = await res.json(); currentPrice = parseFloat(data.price); document.getElementById('coin-price').innerText = '$' + currentPrice.toLocaleString(undefined, {minimumFractionDigits: 2}); } catch (e) {} }
     async function updateLiquidity() {
         try {
