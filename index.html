@@ -58,7 +58,13 @@
         .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
         .hunt-tag { background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .dump-tag { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
+        
+        /* Alpha Web3 التنسيق الجديد ليكون مثل القناص */
         .alpha-tag { background: rgba(0, 210, 255, 0.1); color: var(--alpha); border: 1px solid var(--alpha); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
+        .alpha-alert { border-color: var(--alpha) !important; box-shadow: 0 0 15px rgba(0, 210, 255, 0.2); }
+        @keyframes blink-alpha { 0% { border-color: var(--alpha); box-shadow: 0 0 8px var(--alpha); } 50% { border-color: #222; box-shadow: none; } 100% { border-color: var(--alpha); box-shadow: 0 0 8px var(--alpha); } }
+        .alpha-blink { animation: blink-alpha 0.6s infinite; border-width: 2px !important; }
+
         .whale-alert { border-color: var(--gold) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
@@ -211,6 +217,7 @@
     let sigBuffer = { buy: 0, sell: 0 };
     let lastVolMap = new Map();
     let lockedScannerCoins = new Map();
+    let lockedAlphaCoins = new Map(); // تثبيت عملات ألفا
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
@@ -234,13 +241,27 @@
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('alpha-list');
+            const now = Date.now();
+
+            for (let [sym, expire] of lockedAlphaCoins) { if (now > expire) lockedAlphaCoins.delete(sym); }
+
             let candidates = data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 1000000).sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent)).slice(0, 15);
+            
+            candidates.forEach(c => { if(!lockedAlphaCoins.has(c.symbol)) lockedAlphaCoins.set(c.symbol, now + 30000); });
+
             let html = '';
             candidates.forEach(c => {
-                html += `<div class="scan-item" style="border-right: 4px solid var(--alpha)">
+                const isLocked = lockedAlphaCoins.has(c.symbol);
+                const timeLeft = isLocked ? Math.ceil((lockedAlphaCoins.get(c.symbol) - now)/1000) : 0;
+
+                html += `<div class="scan-item ${isLocked ? 'alpha-blink' : ''}" style="border-left: 5px solid var(--alpha)">
                     <div style="text-align:right">
-                        <div style="color:var(--alpha); font-weight:bold; font-size:16px;">🪐 ${c.symbol} <span class="alpha-tag">ALPHA WEB3</span></div>
+                        <div style="color:var(--alpha); font-weight:bold; font-size:16px; display:flex; align-items:center;">
+                            🪐 ${c.symbol} <span class="alpha-tag">ALPHA WEB3</span>
+                            ${isLocked ? `<span style="font-size:10px; color:var(--red); font-weight:bold; margin-right:8px;">[تثبيت: ${timeLeft}s]</span>` : ''}
+                        </div>
                         <div style="color:var(--green); font-size:12px; font-weight:bold;">قوة الانفجار: ${c.priceChangePercent}%</div>
+                        <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--alpha); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                 </div>`;
@@ -281,7 +302,6 @@
               .forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
             let htmlContent = '';
             finalDisplay.slice(0, 15).forEach(c => {
-                const change = parseFloat(c.priceChangePercent);
                 const isLocked = c.isLocked || false;
                 htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isLocked ? 'var(--gold)' : 'var(--ghost)'}">
                     <div style="text-align:right">
@@ -373,7 +393,7 @@
             if (doc.exists) {
                 const data = doc.data();
                 if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
-                if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); }
+                if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { switchTab('alpha'); }
             }
         }
     }
@@ -390,7 +410,7 @@
             localStorage.setItem('sz_device_id', myId);
             if (data.deviceId && data.deviceId !== myId) { err.innerText = "⚠️ جهاز آخر!"; err.style.display = 'block'; return; }
             if (!data.deviceId) await db.collection("users").doc(k).update({ deviceId: myId });
-            localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); 
+            localStorage.setItem('sz_ultimate_v1_key', k); switchTab('alpha'); 
         } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
     }
     async function showSearch() {
