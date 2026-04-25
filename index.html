@@ -281,6 +281,7 @@
               .forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
             let htmlContent = '';
             finalDisplay.slice(0, 15).forEach(c => {
+                const change = parseFloat(c.priceChangePercent);
                 const isLocked = c.isLocked || false;
                 htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isLocked ? 'var(--gold)' : 'var(--ghost)'}">
                     <div style="text-align:right">
