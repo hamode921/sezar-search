@@ -7,7 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; }
+        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --alpha: #00d2ff; }
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
         .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
@@ -16,7 +16,7 @@
         .secure-note { color: #888; font-size: 11px; margin-bottom: 15px; line-height: 1.6; }
         input.pass { background: #111; border: 1px solid #333; color: var(--gold); padding: 12px; text-align: center; margin-bottom: 20px; width: 95%; outline: none; border-radius: 5px; font-size: 18px; }
         button.login-btn { background: var(--gold); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; margin-bottom: 20px; }
-        #search-screen, #scanner-screen, #whale-hunt-screen, #pump-dump-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
+        #search-screen, #alpha-screen, #scanner-screen, #whale-hunt-screen, #pump-dump-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
         .sezar-brand { margin-bottom: 30px; }
         .sezar-brand .sub-text { font-size: 28px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
         .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 30px; }
@@ -58,6 +58,7 @@
         .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
         .hunt-tag { background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .dump-tag { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
+        .alpha-tag { background: rgba(0, 210, 255, 0.1); color: var(--alpha); border: 1px solid var(--alpha); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .whale-alert { border-color: var(--gold) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
@@ -81,9 +82,22 @@
             </div>
         </div>
 
+        <div id="alpha-screen">
+            <div class="sezar-brand"><span class="sub-text" style="color:var(--alpha);">ALPHA WEB3</span></div>
+            <div class="nav-tabs">
+                <button class="tab-btn active" onclick="switchTab('alpha')" style="border-color: var(--alpha); color: var(--alpha);">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
+                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
+            </div>
+            <div id="alpha-list"></div>
+        </div>
+
         <div id="search-screen">
             <div class="sezar-brand"><span class="sub-text">「 SEZAR-PHANTOM 」</span></div>
             <div class="nav-tabs">
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
                 <button class="tab-btn active" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
@@ -96,6 +110,7 @@
         <div id="scanner-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:var(--ghost);">WHALE SCANNER</span></div>
             <div class="nav-tabs">
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
@@ -107,6 +122,7 @@
         <div id="whale-hunt-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:var(--green);">WHALE ACCUMULATION</span></div>
             <div class="nav-tabs">
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
                 <button class="tab-btn active" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
@@ -118,6 +134,7 @@
         <div id="pump-dump-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:var(--red);">PUMP & DUMP RADAR</span></div>
             <div class="nav-tabs">
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
@@ -190,38 +207,55 @@
     const firebaseConfig = { apiKey: "AIzaSyAzEZksgZMPbY79K_TM3mHKeW1shQ6V-lY", authDomain: "sezar-phantom-auth.firebaseapp.com", projectId: "sezar-phantom-auth", storageBucket: "sezar-phantom-auth.firebasestorage.app", messagingSenderId: "112991314655", appId: "1:112991314655:web:cbca0b5c0c6b6e4f51ff6a" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt, huntInt, pdInt;
+    let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt, huntInt, pdInt, alphaInt;
     let sigBuffer = { buy: 0, sell: 0 };
     let lastVolMap = new Map();
-    let lockedScannerCoins = new Map(); // نظام تثبيت العملات (الرمشة)
+    let lockedScannerCoins = new Map();
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
     function switchTab(tab) {
+        document.getElementById('alpha-screen').style.display = tab === 'alpha' ? 'block' : 'none';
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
         document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
         document.getElementById('whale-hunt-screen').style.display = tab === 'whale-hunt' ? 'block' : 'none';
         document.getElementById('pump-dump-screen').style.display = tab === 'pump-dump' ? 'block' : 'none';
         document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
         
-        clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt);
+        clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt);
+        if(tab === 'alpha') { updateAlpha(); alphaInt = setInterval(updateAlpha, 5000); }
         if(tab === 'scanner') { updateScanner(); scanInt = setInterval(updateScanner, 5000); }
         if(tab === 'whale-hunt') { updateWhaleHunt(); huntInt = setInterval(updateWhaleHunt, 10000); }
         if(tab === 'pump-dump') { updatePumpDump(); pdInt = setInterval(updatePumpDump, 5000); }
     }
 
-    // القناص (ميم) مع خاصية التثبيت وعدم إخفاء القائمة
+    async function updateAlpha() {
+        try {
+            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+            const data = await res.json();
+            const list = document.getElementById('alpha-list');
+            let candidates = data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 1000000).sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent)).slice(0, 15);
+            let html = '';
+            candidates.forEach(c => {
+                html += `<div class="scan-item" style="border-right: 4px solid var(--alpha)">
+                    <div style="text-align:right">
+                        <div style="color:var(--alpha); font-weight:bold; font-size:16px;">🪐 ${c.symbol} <span class="alpha-tag">ALPHA WEB3</span></div>
+                        <div style="color:var(--green); font-size:12px; font-weight:bold;">قوة الانفجار: ${c.priceChangePercent}%</div>
+                    </div>
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--alpha); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
+                </div>`;
+            });
+            list.innerHTML = html;
+        } catch (e) {}
+    }
+
     async function updateScanner() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('scanner-list');
             const now = Date.now();
-
-            // 1. تنظيف العملات المنتهي وقت تثبيتها
             for (let [sym, expire] of lockedScannerCoins) { if (now > expire) lockedScannerCoins.delete(sym); }
-
-            // 2. كشف "العملات المتهيأة للانفجار" (Spikes)
             let spikeCandidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
@@ -233,30 +267,20 @@
                 lastVolMap.set(c.symbol, currentVol);
                 return { ...c, volIncrease };
             }).filter(c => c.volIncrease > 0.8).sort((a,b) => b.volIncrease - a.volIncrease);
-
-            // 3. تثبيت أي عملة متهيأة جديدة لمدة 30 ثانية
             spikeCandidates.forEach(c => { if(!lockedScannerCoins.has(c.symbol)) lockedScannerCoins.set(c.symbol, now + 30000); });
-
-            // 4. دمج العملات المثبتة مع باقي القائمة الكاملة
             let finalDisplay = [];
-            
-            // أولاً: العملات المثبتة (التي ترمش)
             for (let [sym, expire] of lockedScannerCoins) {
                 const coinData = data.find(d => d.symbol === sym);
                 if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
             }
-            
-            // ثانياً: بقية العملات المتهيأة التي لم يتم تثبيتها بعد أو زخمها مستمر
             data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 3000000; // سيولة أقل قليلاً لإبقاء القائمة ممتلئة
+                return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 3000000;
             }).sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
               .forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
-
             let htmlContent = '';
             finalDisplay.slice(0, 15).forEach(c => {
-                const change = parseFloat(c.priceChangePercent);
                 const isLocked = c.isLocked || false;
                 htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isLocked ? 'var(--gold)' : 'var(--ghost)'}">
                     <div style="text-align:right">
@@ -264,7 +288,7 @@
                             ${isLocked ? '🎯 ' : '🛰️ '}${c.symbol}
                             ${isLocked ? `<span style="font-size:10px; color:var(--red); font-weight:bold; margin-right:8px;">[تثبيت: ${c.timeLeft}s]</span>` : ''}
                         </div>
-                        <div style="color:var(--green); font-size:12px; font-weight:bold;">قوة الانفجار: ${change}%</div>
+                        <div style="color:var(--green); font-size:12px; font-weight:bold;">قوة الانفجار: ${c.priceChangePercent}%</div>
                         <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
@@ -274,7 +298,6 @@
         } catch (e) {}
     }
 
-    // Whale Hunt Update
     async function updateWhaleHunt() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
@@ -308,7 +331,6 @@
         } catch (e) {}
     }
 
-    // Pump & Dump Update
     async function updatePumpDump() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
@@ -335,16 +357,13 @@
                         </div>
                         <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | INSIDER LEVEL: HIGH</div>
                     </div>
-                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">
-                        ${c.isPump ? 'ركوب 🌊' : 'تحذير ⚠️'}
-                    </button>
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                 </div>`;
             });
             list.innerHTML = html || '<div style="color:#555; margin-top:20px;">جاري مراقبة التحركات العنيفة...</div>';
         } catch (e) {}
     }
 
-    // Logic Functions (CheckAuth, Activate, etc.)
     async function checkAuth() {
         const savedKey = localStorage.getItem('sz_ultimate_v1_key');
         const myId = localStorage.getItem('sz_device_id');
@@ -353,7 +372,7 @@
             if (doc.exists) {
                 const data = doc.data();
                 if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
-                if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); }
+                if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { switchTab('alpha'); }
             }
         }
     }
@@ -370,7 +389,7 @@
             localStorage.setItem('sz_device_id', myId);
             if (data.deviceId && data.deviceId !== myId) { err.innerText = "⚠️ جهاز آخر!"; err.style.display = 'block'; return; }
             if (!data.deviceId) await db.collection("users").doc(k).update({ deviceId: myId });
-            localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); 
+            localStorage.setItem('sz_ultimate_v1_key', k); switchTab('alpha'); 
         } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
     }
     async function showSearch() {
@@ -402,7 +421,6 @@
         });
     }
 
-    // Radar Logic (Price, Liquidity, Walls)
     function startRadar(symbol, mode) {
         currentSymbol = symbol; currentMode = mode; switchTab('radar');
         document.getElementById('iceberg-list').innerHTML = '';
@@ -414,7 +432,7 @@
         iInt = setInterval(updateIceberg, 1000);
         tInt = setInterval(() => { timeLeft--; if(timeLeft<0) timeLeft=30; document.getElementById('timer').innerText = timeLeft; }, 1000);
     }
-    function goBack() { switchTab('search'); }
+    function goBack() { switchTab('alpha'); }
     function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); timeLeft = 30; }
     
     async function updatePrice() { 
