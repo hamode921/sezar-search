@@ -385,7 +385,9 @@
                         </div>
                         <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | INSIDER LEVEL: HIGH</div>
                     </div>
-                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                        ${c.isPump ? 'قنص 🎯' : 'تحذير ⚠️'}
+                    </button>
                 </div>`;
             });
             list.innerHTML = html || '<div style="color:#555; margin-top:20px;">جاري مراقبة التحركات العنيفة...</div>';
@@ -451,22 +453,17 @@
 
     function startRadar(symbol, mode) {
         currentSymbol = symbol;
-        // تعديل مهم: التحقق إذا كانت العملة تدعم الفيوتشر لجعل الرادار يعتمد عليه دائماً لتوحيد الجدران
         const hasFutures = allCoins.find(c => c.s === symbol && c.m === 'futures');
         currentMode = hasFutures ? 'futures' : 'spot';
-        
         switchTab('radar');
         document.getElementById('iceberg-list').innerHTML = '';
         lastBids = []; lastAsks = [];
         document.getElementById('current-coin-name').innerText = `[ ${symbol} ] - ${currentMode.toUpperCase()}`;
-        
-        // تعديل رابط الشارت ليعرض الفيوتشر إذا كان متاحاً
         const chartSymbol = currentMode === 'futures' ? `BINANCE:${symbol}PERP` : `BINANCE:${symbol}`;
         document.getElementById('chart-frame').src = `https://s.tradingview.com/widgetembed/?symbol=${chartSymbol}&interval=1&theme=dark`;
-        
         stopIntervals(); updatePrice(); updateLiquidity();
         pInt = setInterval(updatePrice, 1000); 
-        lInt = setInterval(updateLiquidity, 3000); // تسريع التحديث لـ 3 ثوانٍ لمراقبة الجدران الحقيقية
+        lInt = setInterval(updateLiquidity, 3000);
         iInt = setInterval(updateIceberg, 1000);
         tInt = setInterval(() => { timeLeft--; if(timeLeft<0) timeLeft=30; document.getElementById('timer').innerText = timeLeft; }, 1000);
     }
@@ -485,40 +482,30 @@
 
     async function updateLiquidity() {
         try {
-            // توحيد جلب البيانات من الفيوتشر لضمان دقة جدران السيولة
             const baseUrl = currentMode === 'futures' ? 'https://fapi.binance.com/fapi/v1/depth' : 'https://api.binance.com/api/v3/depth';
             const res = await fetch(`${baseUrl}?symbol=${currentSymbol}&limit=1000`);
             const data = await res.json();
             if(!data.bids || !data.asks) return;
-
             let bids = data.bids.map(b => ({p: parseFloat(b[0]), v: parseFloat(b[1])}));
             let asks = data.asks.map(a => ({p: parseFloat(a[0]), v: parseFloat(a[1])}));
-            
             let tB = bids.reduce((s,b)=>s+(b.p*b.v),0), tS = asks.reduce((s,a)=>s+(a.p*a.v),0);
             let buyP = (tB/(tB+tS)*100), sellP = 100 - buyP;
             document.getElementById('buy-sell-display').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
-            
-            // حساب عدد الحيتان بناءً على عمق السيولة الفعلي
             let lW = Math.max(1, Math.round((tB/1000000) * 1.5)), sW = Math.max(1, Math.round((tS/1000000) * 1.5));
             document.getElementById('lw-count').innerText = lW;
             document.getElementById('sw-count-whale').innerText = sW;
             document.getElementById('lw-vol').innerText = `$${(tB/1000000).toFixed(2)}M`;
             document.getElementById('sw-vol-whale').innerText = `$${(tS/1000000).toFixed(2)}M`;
             document.getElementById('net-perc').innerText = buyP.toFixed(1) + "%";
-
             let buyBalls = Math.round(buyP / 10), sellBalls = 10 - buyBalls;
             document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(sellBalls);
-            
             const sig = document.getElementById('sig-box');
             sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
             sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish";
-            
             let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
-            
             document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
             document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
-            
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
             if(buyP > 60) { sigBuffer.buy++; sigBuffer.sell = 0; } else if(sellP > 60) { sigBuffer.sell++; sigBuffer.buy = 0; } else { sigBuffer.buy = 0; sigBuffer.sell = 0; }
             if(sigBuffer.buy >= 2) { aiDec.innerText = "🟢 STRONG BUY"; aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; }
