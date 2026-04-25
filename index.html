@@ -97,6 +97,7 @@
             <div class="sezar-brand"><span class="sub-text" style="color:var(--ghost);">WHALE SCANNER</span></div>
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
@@ -108,6 +109,8 @@
             <div class="sezar-brand"><span class="sub-text" style="color:var(--green);">WHALE ACCUMULATION</span></div>
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
                 <button class="tab-btn active" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
@@ -266,6 +269,36 @@
         if(!k) return;
         const doc = await db.collection("users").doc(k).get();
         if (doc.exists) { localStorage.setItem('sz_ultimate_v1_key', k); switchTab('alpha'); }
+    }
+
+    async function showSearch() {
+        document.getElementById('auth-screen').style.display = 'none';
+        switchTab('search');
+        if (allCoins.length === 0) {
+            const [spotRes, futRes] = await Promise.all([ fetch('https://api.binance.com/api/v3/exchangeInfo'), fetch('https://fapi.binance.com/fapi/v1/exchangeInfo') ]);
+            const spotData = await spotRes.json();
+            const futData = await futRes.json();
+            let spotList = spotData.symbols.filter(s => s.status === 'TRADING' && s.symbol.endsWith('USDT')).map(s => ({s: s.symbol, m: 'spot'}));
+            let futList = futData.symbols.filter(s => s.status === 'TRADING' && s.contractType === 'PERPETUAL').map(s => ({s: s.symbol, m: 'futures'}));
+            allCoins = [...spotList, ...futList];
+        }
+        searchCoins();
+    }
+
+    function searchCoins() {
+        const query = document.getElementById('search-input').value.toUpperCase();
+        const list = document.getElementById('results-list');
+        list.innerHTML = '';
+        let uniqueCoins = {};
+        allCoins.filter(c => c.s.includes(query)).forEach(c => { if (!uniqueCoins[c.s] || c.m === 'futures') uniqueCoins[c.s] = c; });
+        Object.values(uniqueCoins).slice(0, 15).forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'coin-item';
+            const color = c.m === 'futures' ? '#f0b90b' : '#00ffcc';
+            item.innerHTML = `<div><span class="coin-type" style="border:1px solid ${color}; color:${color}">${c.m.toUpperCase()}</span><span style="font-weight:bold;">${c.s}</span></div><div style="color:var(--gold); font-size:11px;">تحليل 🔭</div>`;
+            item.onclick = () => startRadar(c.s, c.m);
+            list.appendChild(item);
+        });
     }
 
     function startRadar(symbol, mode) {
