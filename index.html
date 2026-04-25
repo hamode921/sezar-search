@@ -217,7 +217,6 @@
             const list = document.getElementById('scanner-list');
             const now = Date.now();
 
-            // تنظيف العملات المنتهي وقت تثبيتها
             for (let [sym, expire] of lockedScannerCoins) { if (now > expire) lockedScannerCoins.delete(sym); }
 
             let liveCandidates = data.filter(c => {
@@ -232,17 +231,14 @@
                 return { ...c, volIncrease };
             }).filter(c => c.volIncrease > 0.8).sort((a,b) => b.volIncrease - a.volIncrease);
 
-            // تثبيت العملات الجديدة المكتشفة لـ 30 ثانية
             liveCandidates.forEach(c => { if(!lockedScannerCoins.has(c.symbol)) lockedScannerCoins.set(c.symbol, now + 30000); });
 
             let finalDisplay = [];
-            // إضافة العملات المثبتة أولاً
             for (let [sym, expire] of lockedScannerCoins) {
                 const coinData = data.find(d => d.symbol === sym);
                 if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
             }
             
-            // إضافة باقي العملات المكتشفة حالياً (إذا لم تكن مثبتة أصلاً)
             liveCandidates.forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
 
             let htmlContent = '';
