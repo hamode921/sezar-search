@@ -21,6 +21,7 @@
         .sezar-brand .sub-text { font-size: 28px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
         .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 30px; }
         .coin-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .coin-type { font-size: 9px; padding: 2px 5px; border-radius: 3px; margin-right: 5px; }
         #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; position: relative; }
         .header { border: 1px solid var(--gold); padding: 5px; text-align: center; margin-bottom: 15px; border-radius: 5px; position: relative; }
         .back-btn { position: absolute; left: 8px; top: 8px; background: var(--gold); color: #000; border: none; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
@@ -121,6 +122,9 @@
             <div class="sezar-brand"><span class="sub-text" style="color:var(--red);">PUMP & DUMP RADAR</span></div>
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
                 <button class="tab-btn active" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div id="pump-dump-list"></div>
@@ -261,14 +265,28 @@
 
     async function checkAuth() {
         const savedKey = localStorage.getItem('sz_ultimate_v1_key');
-        if (savedKey) { const doc = await db.collection("users").doc(savedKey).get(); if (doc.exists) { switchTab('alpha'); } }
+        const myId = localStorage.getItem('sz_device_id');
+        if (savedKey && myId) {
+            const doc = await db.collection("users").doc(savedKey).get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
+                if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { switchTab('alpha'); }
+            }
+        }
     }
     
     async function activate() { 
         const k = document.getElementById('pass-key').value;
         if(!k) return;
         const doc = await db.collection("users").doc(k).get();
-        if (doc.exists) { localStorage.setItem('sz_ultimate_v1_key', k); switchTab('alpha'); }
+        if (doc.exists) { 
+            const data = doc.data();
+            let myId = localStorage.getItem('sz_device_id') || 'DEV-' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('sz_device_id', myId);
+            if (!data.deviceId) await db.collection("users").doc(k).update({ deviceId: myId });
+            localStorage.setItem('sz_ultimate_v1_key', k); switchTab('alpha'); 
+        }
     }
 
     async function showSearch() {
