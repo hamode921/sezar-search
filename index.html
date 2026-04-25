@@ -37,6 +37,7 @@
         #power-bar { text-align:center; margin-bottom:20px; display: flex; justify-content: center; gap: 4px; }
         .ball { width: 12px; height: 12px; border-radius: 50%; }
 
+        /* حقل الحيتان المباشر - المحدث */
         .whale-live-box { background: rgba(8, 8, 8, 0.9); border: 1px solid var(--gold); border-radius: 10px; padding: 12px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center; }
         .whale-col { flex: 1; text-align: center; }
         .whale-label { font-size: 8px; color: #888; margin-bottom: 4px; }
@@ -48,8 +49,8 @@
         .ai-signal-box { background: linear-gradient(45deg, #080808, #111); border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; position: relative; }
         #ai-decision { font-size: 18px; font-weight: 900; margin: 5px 0; }
         
-        /* زر اللقطة الصغير */
-        .snap-btn { position: absolute; right: 10px; top: 10px; background: none; border: 1px solid var(--gold); color: var(--gold); border-radius: 4px; font-size: 10px; cursor: pointer; padding: 2px 5px; }
+        /* تصميم زر الكاميرا الذهبي */
+        .camera-snap { position: absolute; right: 10px; top: 10px; background: var(--gold); color: #000; border: none; padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
 
         .ai-meta { display: flex; justify-content: space-around; font-size: 10px; color: #888; margin-top: 5px; }
         #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; }
@@ -139,7 +140,7 @@
 
             <div id="s-walls"></div>
             <div class="ai-signal-box">
-                <button class="snap-btn" onclick="takeCap()">📷 لقطة</button>
+                <button class="camera-snap" onclick="captureRadar()">📷 اللقطة</button>
                 <div style="font-size:11px;color:var(--gold);font-weight:bold;border-bottom:1px solid #222;padding-bottom:5px;margin-bottom:8px;">🤖 CAESAR SIGNAL AI</div>
                 <div id="ai-decision">ANALYZING...</div>
                 <div class="ai-meta"><span>TARGET: <span id="ai-target">--</span></span><span>ACCURACY: <span id="ai-conf">--</span></span></div>
@@ -167,12 +168,10 @@
     let sigBuffer = { buy: 0, sell: 0 };
     let lastVolMap = new Map();
 
-    function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
-    
-    // وظيفة اللقطة
-    function takeCap() {
-        const area = document.getElementById('radar-ui');
-        html2canvas(area, { backgroundColor: "#000", useCORS: true, scale: 2 }).then(canvas => {
+    // وظيفة التقاط الشاشة
+    function captureRadar() {
+        const radarElement = document.getElementById('radar-ui');
+        html2canvas(radarElement, { backgroundColor: "#000", useCORS: true, scale: 2 }).then(canvas => {
             const link = document.createElement('a');
             link.download = `Sezar-Radar-${currentSymbol}.png`;
             link.href = canvas.toDataURL();
@@ -180,6 +179,7 @@
         });
     }
 
+    function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     function switchTab(tab) {
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
         document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
@@ -317,7 +317,7 @@
             document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
             document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
-            if(buyP > 60) { sigBuffer.buy++; sigBuffer.sell = 0; } else if(sellP > 60) { sigBuffer.sell++; sigBuffer.buy = 0; } else { sigBuffer.buy = 0; sigBuffer.sell = 0; }
+            if(buyP > 60) { sigBuffer.buy++; sigBuffer.sell = 0; } else if(sellP > 60) { sigBuffer.sell++; buyP = 0; } else { sigBuffer.buy = 0; sigBuffer.sell = 0; }
             if(sigBuffer.buy >= 2) { aiDec.innerText = "🟢 STRONG BUY"; aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; }
             else if(sigBuffer.sell >= 2) { aiDec.innerText = "🔴 STRONG SELL"; aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "91%"; }
             else { aiDec.innerText = "🟡 WAIT / SIDEWAYS"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "45%"; }
