@@ -252,6 +252,7 @@
             const list = document.getElementById('alpha-list');
             const now = Date.now();
             for (let [sym, expire] of lockedAlphaCoins) { if (now > expire) lockedAlphaCoins.delete(sym); }
+            
             let candidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
@@ -263,6 +264,7 @@
                 lastVolMap.set(c.symbol, currentVol);
                 return { ...c, volIncrease };
             }).filter(c => c.volIncrease > 0.5);
+            
             candidates.forEach(c => { if(!lockedAlphaCoins.has(c.symbol)) lockedAlphaCoins.set(c.symbol, now + 30000); });
             let finalDisplay = [];
             for (let [sym, expire] of lockedAlphaCoins) {
@@ -272,6 +274,7 @@
             data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 1000000)
                 .sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
                 .forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
+            
             let html = '';
             finalDisplay.slice(0, 15).forEach(c => {
                 const isLocked = c.isLocked || false;
@@ -298,10 +301,16 @@
             const list = document.getElementById('scanner-list');
             const now = Date.now();
             for (let [sym, expire] of lockedScannerCoins) { if (now > expire) lockedScannerCoins.delete(sym); }
+            
+            // دمج عملات ألفا في الماسح (أهم خطوة)
+            let alphaSymbols = Array.from(lockedAlphaCoins.keys());
+            
             let spikeCandidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 5000000;
+                // تصفية عملات ألفا أو الميمات المتهيأة
+                const isAlpha = alphaSymbols.includes(c.symbol);
+                return c.symbol.endsWith('USDT') && (isAlpha || (change >= 0 && change <= 15 && volume > 5000000));
             }).map(c => {
                 const currentVol = parseFloat(c.quoteVolume);
                 const prevVol = lastVolMap.get(c.symbol) || currentVol;
@@ -309,29 +318,28 @@
                 lastVolMap.set(c.symbol, currentVol);
                 return { ...c, volIncrease };
             }).filter(c => c.volIncrease > 0.8).sort((a,b) => b.volIncrease - a.volIncrease);
+            
             spikeCandidates.forEach(c => { if(!lockedScannerCoins.has(c.symbol)) lockedScannerCoins.set(c.symbol, now + 30000); });
             let finalDisplay = [];
             for (let [sym, expire] of lockedScannerCoins) {
                 const coinData = data.find(d => d.symbol === sym);
                 if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
             }
-            data.filter(c => {
-                const change = parseFloat(c.priceChangePercent);
-                const volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 3000000;
-            }).sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
+            data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 3000000)
+              .sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
               .forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
+            
             let htmlContent = '';
             finalDisplay.slice(0, 15).forEach(c => {
                 const isLocked = c.isLocked || false;
-                htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isLocked ? 'var(--gold)' : 'var(--ghost)'}">
+                const isAlpha = alphaSymbols.includes(c.symbol);
+                htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isAlpha ? 'var(--gold)' : 'var(--ghost)'}">
                     <div style="text-align:right">
                         <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
-                            ${isLocked ? '🎯 ' : '🛰️ '}${c.symbol}
+                            ${isAlpha ? '🪐 ' : '🛰️ '}${c.symbol}
                             ${isLocked ? `<span style="font-size:10px; color:var(--red); font-weight:bold; margin-right:8px;">[تثبيت: ${c.timeLeft}s]</span>` : ''}
                         </div>
-                        <div style="color:var(--green); font-size:12px; font-weight:bold;">قوة الانفجار: ${c.priceChangePercent}%</div>
-                        <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
+                        <div style="color:var(--green); font-size:12px; font-weight:bold;">${isAlpha ? 'ALFA DETECTED' : 'MEME RADAR'}: ${c.priceChangePercent}%</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                 </div>`;
@@ -345,15 +353,19 @@
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('whale-hunt-list');
+            let alphaSymbols = Array.from(lockedAlphaCoins.keys());
+            
             let candidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && change >= -1 && change <= 3 && volume > 10000000;
+                const isAlpha = alphaSymbols.includes(c.symbol);
+                return c.symbol.endsWith('USDT') && (isAlpha || (change >= -1 && change <= 3 && volume > 10000000));
             }).map(c => {
                 const vol = parseFloat(c.quoteVolume);
                 const score = (vol / 50000000) + (parseFloat(c.priceChangePercent) * 2);
                 return { ...c, huntScore: score };
             }).sort((a,b) => b.huntScore - a.huntScore).slice(0, 10);
+            
             let html = '';
             candidates.forEach(c => {
                 const isStrong = c.huntScore > 5;
@@ -378,14 +390,18 @@
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('pump-dump-list');
+            let alphaSymbols = Array.from(lockedAlphaCoins.keys());
+            
             let candidates = data.filter(c => {
                 const vol = parseFloat(c.quoteVolume);
                 const chg = parseFloat(c.priceChangePercent);
-                return c.symbol.endsWith('USDT') && (chg > 15 || chg < -10) && vol > 15000000;
+                const isAlpha = alphaSymbols.includes(c.symbol);
+                return c.symbol.endsWith('USDT') && (isAlpha || Math.abs(chg) > 10) && vol > 15000000;
             }).map(c => {
                 const chg = parseFloat(c.priceChangePercent);
                 return { ...c, isPump: chg > 0 };
             }).sort((a,b) => Math.abs(parseFloat(b.priceChangePercent)) - Math.abs(parseFloat(a.priceChangePercent))).slice(0, 12);
+            
             let html = '';
             candidates.forEach(c => {
                 html += `<div class="scan-item" style="border-right: 5px solid ${c.isPump ? 'var(--green)' : 'var(--red)'}">
@@ -397,7 +413,6 @@
                         <div style="color:${c.isPump ? 'var(--green)' : 'var(--red)'}; font-size:11px;">
                             ${c.isPump ? 'MOON MISSION: ' + c.priceChangePercent + '%' : 'LIQUIDITY CRASH: ' + c.priceChangePercent + '%'}
                         </div>
-                        <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | INSIDER LEVEL: HIGH</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">
                         ${c.isPump ? 'قنص 🎯' : 'تحذير ⚠️'}
@@ -534,7 +549,6 @@
             
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
             
-            // خلطة سيدزو السريعة والمتوازنة (62% سيولة + تأكيد 3 مرات)
             const strongBuyCriteria = buyP > 62 && (tB/1000000) > 3;
             const strongSellCriteria = sellP > 62 && (tS/1000000) > 3;
 
@@ -604,4 +618,3 @@
 </script>
 </body>
 </html>
-
