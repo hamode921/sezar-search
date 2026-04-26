@@ -184,7 +184,7 @@
 
             <div id="s-walls"></div>
             <div class="ai-signal-box">
-                <div style="font-size:11px;color:var(--gold);font-weight:bold;border-bottom:1px solid #222;padding-bottom:5px;margin-bottom:8px;">🤖 CAESAR SIGNAL AI</div>
+                <div style="font-size:11px;color:var(--gold);font-weight:bold;border-bottom:1px solid #222;padding-bottom:5px;margin-bottom:8px;">🤖 CAESAR SnipAI v2.0 (90%+)</div>
                 <div id="ai-decision">ANALYZING...</div>
                 <div class="ai-meta"><span>TARGET: <span id="ai-target">--</span></span><span>ACCURACY: <span id="ai-conf">--</span></span></div>
             </div>
@@ -207,11 +207,29 @@
     const firebaseConfig = { apiKey: "AIzaSyAzEZksgZMPbY79K_TM3mHKeW1shQ6V-lY", authDomain: "sezar-phantom-auth.firebaseapp.com", projectId: "sezar-phantom-auth", storageBucket: "sezar-phantom-auth.firebasestorage.app", messagingSenderId: "112991314655", appId: "1:112991314655:web:cbca0b5c0c6b6e4f51ff6a" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt, huntInt, pdInt, alphaInt;
     let sigBuffer = { buy: 0, sell: 0 };
     let lastVolMap = new Map();
     let lockedAlphaCoins = new Map();
     let lockedScannerCoins = new Map();
+
+    // نظام التنبيه الصوتي
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSniperWhistle() {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.4);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+    }
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
@@ -308,7 +326,6 @@
               .forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
             let htmlContent = '';
             finalDisplay.slice(0, 15).forEach(c => {
-                const change = parseFloat(c.priceChangePercent);
                 const isLocked = c.isLocked || false;
                 htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isLocked ? 'var(--gold)' : 'var(--ghost)'}">
                     <div style="text-align:right">
@@ -406,6 +423,7 @@
             }
         }
     }
+    
     async function activate() { 
         const k = document.getElementById('pass-key').value;
         const err = document.getElementById('error-msg');
@@ -422,6 +440,7 @@
             localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); 
         } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
     }
+
     async function showSearch() {
         document.getElementById('auth-screen').style.display = 'none';
         switchTab('search');
@@ -435,6 +454,7 @@
         }
         searchCoins();
     }
+
     function searchCoins() {
         const query = document.getElementById('search-input').value.toUpperCase();
         const list = document.getElementById('results-list');
@@ -457,7 +477,7 @@
         currentMode = hasFutures ? 'futures' : 'spot';
         switchTab('radar');
         document.getElementById('iceberg-list').innerHTML = '';
-        lastBids = []; lastAsks = [];
+        lastBids = []; lastAsks = []; sigBuffer = { buy: 0, sell: 0 };
         document.getElementById('current-coin-name').innerText = `[ ${symbol} ] - ${currentMode.toUpperCase()}`;
         const chartSymbol = currentMode === 'futures' ? `BINANCE:${symbol}PERP` : `BINANCE:${symbol}`;
         document.getElementById('chart-frame').src = `https://s.tradingview.com/widgetembed/?symbol=${chartSymbol}&interval=1&theme=dark`;
@@ -467,6 +487,7 @@
         iInt = setInterval(updateIceberg, 1000);
         tInt = setInterval(() => { timeLeft--; if(timeLeft<0) timeLeft=30; document.getElementById('timer').innerText = timeLeft; }, 1000);
     }
+
     function goBack() { switchTab('alpha'); }
     function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt); timeLeft = 30; }
     
@@ -486,31 +507,65 @@
             const res = await fetch(`${baseUrl}?symbol=${currentSymbol}&limit=1000`);
             const data = await res.json();
             if(!data.bids || !data.asks) return;
+
             let bids = data.bids.map(b => ({p: parseFloat(b[0]), v: parseFloat(b[1])}));
             let asks = data.asks.map(a => ({p: parseFloat(a[0]), v: parseFloat(a[1])}));
+            
             let tB = bids.reduce((s,b)=>s+(b.p*b.v),0), tS = asks.reduce((s,a)=>s+(a.p*a.v),0);
             let buyP = (tB/(tB+tS)*100), sellP = 100 - buyP;
             document.getElementById('buy-sell-display').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
+            
             let lW = Math.max(1, Math.round((tB/1000000) * 1.5)), sW = Math.max(1, Math.round((tS/1000000) * 1.5));
             document.getElementById('lw-count').innerText = lW;
             document.getElementById('sw-count-whale').innerText = sW;
             document.getElementById('lw-vol').innerText = `$${(tB/1000000).toFixed(2)}M`;
             document.getElementById('sw-vol-whale').innerText = `$${(tS/1000000).toFixed(2)}M`;
             document.getElementById('net-perc').innerText = buyP.toFixed(1) + "%";
+
             let buyBalls = Math.round(buyP / 10), sellBalls = 10 - buyBalls;
             document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(sellBalls);
+            
             const sig = document.getElementById('sig-box');
             sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
             sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish";
+            
             let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
+            
             document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
             document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
+            
+            // نظام تصفية الدقة 90% (Strict Filter)
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
-            if(buyP > 60) { sigBuffer.buy++; sigBuffer.sell = 0; } else if(sellP > 60) { sigBuffer.sell++; sigBuffer.buy = 0; } else { sigBuffer.buy = 0; sigBuffer.sell = 0; }
-            if(sigBuffer.buy >= 2) { aiDec.innerText = "🟢 STRONG BUY"; aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; }
-            else if(sigBuffer.sell >= 2) { aiDec.innerText = "🔴 STRONG SELL"; aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "91%"; }
-            else { aiDec.innerText = "🟡 WAIT / SIDEWAYS"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "45%"; }
+            
+            // شروط الدخول الذهبية (سيولة + ثبات + جدران)
+            const strongBuyCriteria = buyP > 70 && (tB/1000000) > 5;
+            const strongSellCriteria = sellP > 70 && (tS/1000000) > 5;
+
+            if(strongBuyCriteria) { 
+                sigBuffer.buy++; sigBuffer.sell = 0; 
+                if(sigBuffer.buy >= 5) { // تأكيد 5 مرات متتالية (ثبات)
+                    if(sigBuffer.buy === 5) playSniperWhistle(); // صافرة عند أول تأكيد
+                    aiDec.innerText = "🚀 قنص شراء مؤكد"; 
+                    aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; 
+                } else {
+                    aiDec.innerText = "⏳ جاري التأكيد الشراء (" + sigBuffer.buy + "/5)";
+                    aiDec.style.color = "var(--green)"; aiC.innerText = "70%";
+                }
+            } else if(strongSellCriteria) { 
+                sigBuffer.sell++; sigBuffer.buy = 0; 
+                if(sigBuffer.sell >= 5) {
+                    if(sigBuffer.sell === 5) playSniperWhistle();
+                    aiDec.innerText = "📉 قنص بيع مؤكد"; 
+                    aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "92%"; 
+                } else {
+                    aiDec.innerText = "⏳ جاري التأكيد البيع (" + sigBuffer.sell + "/5)";
+                    aiDec.style.color = "var(--red)"; aiC.innerText = "70%";
+                }
+            } else { 
+                sigBuffer.buy = 0; sigBuffer.sell = 0; 
+                aiDec.innerText = "🟡 سيولة ضعيفة - لا تدخل"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "--%"; 
+            }
         } catch (e) {}
     }
 
