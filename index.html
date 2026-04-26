@@ -219,7 +219,7 @@
     let lastVolMap = new Map();
     let lockedAlphaCoins = new Map();
     let lockedScannerCoins = new Map();
-    let lastSignalTime = 0; // لمنع التخبط السريع بين الإشارات
+    let lastSignalTime = 0; 
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
@@ -395,36 +395,39 @@
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('pump-dump-list');
-            let alphaSymbols = Array.from(lockedAlphaCoins.keys());
             
             let candidates = data.filter(c => {
                 const vol = parseFloat(c.quoteVolume);
                 const chg = parseFloat(c.priceChangePercent);
-                const isAlpha = alphaSymbols.includes(c.symbol);
-                return c.symbol.endsWith('USDT') && (isAlpha || Math.abs(chg) > 10) && vol > 15000000;
+                return c.symbol.endsWith('USDT') && vol > 20000000 && Math.abs(chg) > 2;
             }).map(c => {
-                const chg = parseFloat(c.priceChangePercent);
-                return { ...c, isPump: chg > 0 };
-            }).sort((a,b) => Math.abs(parseFloat(b.priceChangePercent)) - Math.abs(parseFloat(a.priceChangePercent))).slice(0, 12);
+                const currentVol = parseFloat(c.quoteVolume);
+                const prevVol = lastVolMap.get(c.symbol) || currentVol;
+                const volSpeed = ((currentVol - prevVol) / prevVol) * 100;
+                lastVolMap.set(c.symbol, currentVol);
+                return { ...c, volSpeed: volSpeed, isPump: parseFloat(c.priceChangePercent) > 0 };
+            })
+            .sort((a,b) => b.volSpeed - a.volSpeed).slice(0, 12);
             
             let html = '';
             candidates.forEach(c => {
+                const speedTag = c.volSpeed > 1 ? `<span class="hunt-tag" style="background:var(--gold); color:#000">سيولة حية 🔥</span>` : '';
                 html += `<div class="scan-item" style="border-right: 5px solid ${c.isPump ? 'var(--green)' : 'var(--red)'}">
                     <div style="text-align:right">
                         <div style="color:var(--gold); font-weight:bold; font-size:16px;">
-                            ${c.isPump ? '🚀 ' : '📉 '}${c.symbol}
-                            ${c.isPump ? '<span class="hunt-tag">PUMPING 🔥</span>' : '<span class="dump-tag">DUMPING 📉</span>'}
+                            ${c.isPump ? '🚀 ' : '📉 '}${c.symbol} ${speedTag}
                         </div>
                         <div style="color:${c.isPump ? 'var(--green)' : 'var(--red)'}; font-size:11px;">
-                            ${c.isPump ? 'MOON MISSION: ' + c.priceChangePercent + '%' : 'LIQUIDITY CRASH: ' + c.priceChangePercent + '%'}
+                            ${c.isPump ? 'لحظة انفجار: ' : 'لحظة انهيار: '} ${c.priceChangePercent}%
                         </div>
+                        <div style="color:#666; font-size:9px;">فوليوم لحظي: $${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">
-                        ${c.isPump ? 'قنص 🎯' : 'تحذير ⚠️'}
+                        دخول 🎯
                     </button>
                 </div>`;
             });
-            list.innerHTML = html || '<div style="color:#555; margin-top:20px;">جاري مراقبة التحركات العنيفة...</div>';
+            list.innerHTML = html || '<div style="color:#555; margin-top:20px;">جاري رصد الانفجارات اللحظية...</div>';
         } catch (e) {}
     }
 
@@ -557,14 +560,12 @@
             const immSupport = bids.slice(0, 15).reduce((s,b)=>s+b.v, 0);
             const immResistance = asks.slice(0, 15).reduce((s,a)=>s+a.v, 0);
 
-            // --- تصليح ثبات الجدار وكشف التلاعب ---
             if (topBid.p === lastTopBidPrice && lastTopBidPrice !== 0) {
                 wallStabilityCounter++;
             } else {
                 wallStabilityCounter = 0; 
             }
 
-            // --- تحديث درع الدعم ---
             if (topBid.p >= lastSupportWall && lastSupportWall !== 0) {
                 supportShield.innerText = "🛡️ SUPPORT SHIELD: ACTIVE 🚀";
                 supportShield.style.color = "var(--green)";
@@ -574,9 +575,7 @@
             }
             lastSupportWall = topBid.p;
 
-            // --- المنطق المطور لاتخاذ القرار (أكثر ثباتاً) ---
             const now = Date.now();
-            // الدخول: يتطلب سيولة شراء > 65% + استقرار لـ 4 دورات + فارق زمني
             if (buyP > 65 && immSupport > immResistance && wallStabilityCounter >= 4) {
                 if (now - lastSignalTime > 5000) { 
                     sigBuffer.buy++; sigBuffer.sell = 0;
@@ -589,7 +588,6 @@
                     }
                 }
             } 
-            // الخروج: سيطرة بيع > 65% أو اختفاء مفاجئ للدعم > 70%
             else if (sellP > 65 || (lastBidsTotal > 0 && immSupport < lastBidsTotal * 0.3)) {
                 if (now - lastSignalTime > 3000) {
                     sigBuffer.sell++; sigBuffer.buy = 0;
@@ -600,7 +598,6 @@
                     lastSignalTime = now;
                 }
             } 
-            // حالة الانتظار
             else {
                 sigBuffer.buy = 0; sigBuffer.sell = 0;
                 document.body.classList.remove('danger-blink');
