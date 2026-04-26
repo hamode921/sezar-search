@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SEZAR-PHANTOM PRO ULTIMATE - REPAIRED</title>
+    <title>SEZAR-PHANTOM PRO ULTIMATE - FLIGHT MODE</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
@@ -165,9 +165,7 @@
                 <span id="buy-sell-display">BUY: --% | SELL: --%</span>
                 <button class="inline-btn" onclick="setZoom(1.0)">🏠</button>
             </div>
-            
             <div id="power-bar" style="flex-direction: row-reverse;"></div>
-
             <div class="whale-live-box">
                 <div class="whale-col">
                     <div class="whale-label">SHORT WHALES</div>
@@ -185,7 +183,6 @@
                     <div id="lw-vol" class="whale-sub" style="color:#888">$0.00M</div>
                 </div>
             </div>
-
             <div id="s-walls"></div>
             <div class="ai-signal-box">
                 <div id="support-shield-text" style="font-size:11px; color:var(--green); font-weight:bold; border-bottom:1px solid #222; padding-bottom:5px; margin-bottom:8px;">🛡️ SUPPORT SHIELD: ACTIVE</div>
@@ -219,7 +216,7 @@
     let lastVolMap = new Map();
     let lockedAlphaCoins = new Map();
     let lockedScannerCoins = new Map();
-    let lastSignalTime = 0; 
+    let lastSignalTime = 0;
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
@@ -252,6 +249,7 @@
         if(tab === 'pump-dump') { updatePumpDump(); pdInt = setInterval(updatePumpDump, 5000); }
     }
 
+    // --- Flight Mode Alpha Update ---
     async function updateAlpha() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
@@ -263,41 +261,38 @@
             let candidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && change >= 1.5 && volume > 2000000;
+                return c.symbol.endsWith('USDT') && change >= 2.5 && volume > 5000000;
             }).map(c => {
                 const currentVol = parseFloat(c.quoteVolume);
                 const prevVol = lastVolMap.get(c.symbol) || currentVol;
                 const volIncrease = prevVol > 0 ? ((currentVol - prevVol) / prevVol) * 100 : 0;
                 lastVolMap.set(c.symbol, currentVol);
                 return { ...c, volIncrease };
-            }).filter(c => c.volIncrease > 0.5);
+            }).filter(c => c.volIncrease > 1.0);
             
-            candidates.forEach(c => { if(!lockedAlphaCoins.has(c.symbol)) lockedAlphaCoins.set(c.symbol, now + 30000); });
+            candidates.forEach(c => { if(!lockedAlphaCoins.has(c.symbol)) lockedAlphaCoins.set(c.symbol, now + 45000); });
+            
             let finalDisplay = [];
             for (let [sym, expire] of lockedAlphaCoins) {
                 const coinData = data.find(d => d.symbol === sym);
                 if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
             }
-            data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 1000000)
-                .sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
-                .forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
             
             let html = '';
-            finalDisplay.slice(0, 15).forEach(c => {
-                const isLocked = c.isLocked || false;
-                html += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid var(--gold)">
+            finalDisplay.sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent)).forEach(c => {
+                html += `<div class="scan-item blink-border" style="border-left: 5px solid var(--gold); background: rgba(251, 191, 36, 0.05)">
                     <div style="text-align:right">
                         <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
-                            🪐 ${c.symbol} <span class="alpha-tag">ALPHA WEB3</span>
-                            ${isLocked ? `<span style="font-size:10px; color:var(--red); font-weight:bold; margin-right:8px;">[تنبيه: ${c.timeLeft}ث]</span>` : ''}
+                            🪐 ${c.symbol} <span class="alpha-tag">FLIGHT IN PROGRESS 🚀</span>
+                            <span style="font-size:10px; color:var(--red); font-weight:bold; margin-right:8px;">[تثبيت: ${c.timeLeft}ث]</span>
                         </div>
-                        <div style="color:var(--green); font-size:12px; font-weight:bold;">قوة الانفجار: ${c.priceChangePercent}%</div>
-                        <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
+                        <div style="color:var(--green); font-size:13px; font-weight:bold;">الزخم الحالي: ${c.priceChangePercent}%</div>
+                        <div style="color:#888; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
                     </div>
-                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:12px 25px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow: 0 0 10px var(--gold);">التحليق 🔭</button>
                 </div>`;
             });
-            list.innerHTML = html;
+            list.innerHTML = html || '<div style="color:#555; margin-top:20px;">جاري رصد موجات التحليق الكبرى...</div>';
         } catch (e) {}
     }
 
@@ -308,9 +303,7 @@
             const list = document.getElementById('scanner-list');
             const now = Date.now();
             for (let [sym, expire] of lockedScannerCoins) { if (now > expire) lockedScannerCoins.delete(sym); }
-            
             let alphaSymbols = Array.from(lockedAlphaCoins.keys());
-            
             let spikeCandidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
@@ -323,7 +316,6 @@
                 lastVolMap.set(c.symbol, currentVol);
                 return { ...c, volIncrease };
             }).filter(c => c.volIncrease > 0.8).sort((a,b) => b.volIncrease - a.volIncrease);
-            
             spikeCandidates.forEach(c => { if(!lockedScannerCoins.has(c.symbol)) lockedScannerCoins.set(c.symbol, now + 30000); });
             let finalDisplay = [];
             for (let [sym, expire] of lockedScannerCoins) {
@@ -333,7 +325,6 @@
             data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 3000000)
               .sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
               .forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
-            
             let htmlContent = '';
             finalDisplay.slice(0, 15).forEach(c => {
                 const isLocked = c.isLocked || false;
@@ -359,7 +350,6 @@
             const data = await res.json();
             const list = document.getElementById('whale-hunt-list');
             let alphaSymbols = Array.from(lockedAlphaCoins.keys());
-            
             let candidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
@@ -370,7 +360,6 @@
                 const score = (vol / 50000000) + (parseFloat(c.priceChangePercent) * 2);
                 return { ...c, huntScore: score };
             }).sort((a,b) => b.huntScore - a.huntScore).slice(0, 10);
-            
             let html = '';
             candidates.forEach(c => {
                 const isStrong = c.huntScore > 5;
@@ -395,7 +384,6 @@
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('pump-dump-list');
-            
             let candidates = data.filter(c => {
                 const vol = parseFloat(c.quoteVolume);
                 const chg = parseFloat(c.priceChangePercent);
@@ -406,9 +394,7 @@
                 const volSpeed = ((currentVol - prevVol) / prevVol) * 100;
                 lastVolMap.set(c.symbol, currentVol);
                 return { ...c, volSpeed: volSpeed, isPump: parseFloat(c.priceChangePercent) > 0 };
-            })
-            .sort((a,b) => b.volSpeed - a.volSpeed).slice(0, 12);
-            
+            }).sort((a,b) => b.volSpeed - a.volSpeed).slice(0, 12);
             let html = '';
             candidates.forEach(c => {
                 const speedTag = c.volSpeed > 1 ? `<span class="hunt-tag" style="background:var(--gold); color:#000">سيولة حية 🔥</span>` : '';
@@ -422,9 +408,7 @@
                         </div>
                         <div style="color:#666; font-size:9px;">فوليوم لحظي: $${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M</div>
                     </div>
-                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">
-                        دخول 🎯
-                    </button>
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">دخول 🎯</button>
                 </div>`;
             });
             list.innerHTML = html || '<div style="color:#555; margin-top:20px;">جاري رصد الانفجارات اللحظية...</div>';
@@ -527,45 +511,31 @@
             const res = await fetch(`${baseUrl}?symbol=${currentSymbol}&limit=1000`);
             const data = await res.json();
             if(!data.bids || !data.asks) return;
-
             let bids = data.bids.map(b => ({p: parseFloat(b[0]), v: parseFloat(b[1])}));
             let asks = data.asks.map(a => ({p: parseFloat(a[0]), v: parseFloat(a[1])}));
-            
             let tB = bids.reduce((s,b)=>s+(b.p*b.v),0), tS = asks.reduce((s,a)=>s+(a.p*a.v),0);
             let buyP = (tB/(tB+tS)*100), sellP = 100 - buyP;
             document.getElementById('buy-sell-display').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
-            
             let lW = Math.max(1, Math.round((tB/1000000) * 1.5)), sW = Math.max(1, Math.round((tS/1000000) * 1.5));
             document.getElementById('lw-count').innerText = lW;
             document.getElementById('sw-count-whale').innerText = sW;
             document.getElementById('lw-vol').innerText = `$${(tB/1000000).toFixed(2)}M`;
             document.getElementById('sw-vol-whale').innerText = `$${(tS/1000000).toFixed(2)}M`;
             document.getElementById('net-perc').innerText = buyP.toFixed(1) + "%";
-
             let buyBalls = Math.round(buyP / 10), sellBalls = 10 - buyBalls;
             document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(sellBalls);
-            
             const sig = document.getElementById('sig-box');
             sig.innerText = buyP > 55 ? "🟢 SIGNAL: BULLISH" : (buyP < 45 ? "🔴 SIGNAL: BEARISH" : "🟡 SIGNAL: NEUTRAL");
             sig.className = buyP > 55 ? "sig-bullish" : (buyP < 45 ? "sig-bearish" : "");
-            
             let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
-            
             document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>VOL: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
             document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>VOL: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
-            
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
             const supportShield = document.getElementById('support-shield-text');
             const immSupport = bids.slice(0, 15).reduce((s,b)=>s+b.v, 0);
             const immResistance = asks.slice(0, 15).reduce((s,a)=>s+a.v, 0);
-
-            if (topBid.p === lastTopBidPrice && lastTopBidPrice !== 0) {
-                wallStabilityCounter++;
-            } else {
-                wallStabilityCounter = 0; 
-            }
-
+            if (topBid.p === lastTopBidPrice && lastTopBidPrice !== 0) { wallStabilityCounter++; } else { wallStabilityCounter = 0; }
             if (topBid.p >= lastSupportWall && lastSupportWall !== 0) {
                 supportShield.innerText = "🛡️ SUPPORT SHIELD: ACTIVE 🚀";
                 supportShield.style.color = "var(--green)";
@@ -574,7 +544,6 @@
                 supportShield.style.color = "var(--gold)";
             }
             lastSupportWall = topBid.p;
-
             const now = Date.now();
             if (buyP > 65 && immSupport > immResistance && wallStabilityCounter >= 4) {
                 if (now - lastSignalTime > 5000) { 
@@ -587,8 +556,7 @@
                         lastSignalTime = now;
                     }
                 }
-            } 
-            else if (sellP > 65 || (lastBidsTotal > 0 && immSupport < lastBidsTotal * 0.3)) {
+            } else if (sellP > 65 || (lastBidsTotal > 0 && immSupport < lastBidsTotal * 0.3)) {
                 if (now - lastSignalTime > 3000) {
                     sigBuffer.sell++; sigBuffer.buy = 0;
                     playSniperWhistle(true);
@@ -597,13 +565,11 @@
                     aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "99%";
                     lastSignalTime = now;
                 }
-            } 
-            else {
+            } else {
                 sigBuffer.buy = 0; sigBuffer.sell = 0;
                 document.body.classList.remove('danger-blink');
                 aiDec.innerText = "🟡 MONITORING FLOW"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "--%";
             }
-
             lastBidsTotal = immSupport;
             lastTopBidPrice = topBid.p;
         } catch (e) {}
