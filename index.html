@@ -13,8 +13,9 @@
         .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
         body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; }
         
-        .danger-blink { animation: red-flash 0.6s infinite; }
-        @keyframes red-flash { 0% { box-shadow: inset 0 0 50px #450a0a; } 50% { box-shadow: inset 0 0 100px #ef4444; } 100% { box-shadow: inset 0 0 50px #450a0a; } }
+        /* وميض الخطر للحقل فقط */
+        .danger-blink { animation: red-flash 0.6s infinite !important; border: 2px solid var(--red) !important; box-shadow: inset 0 0 50px #450a0a !important; }
+        @keyframes red-flash { 0% { background: #080808; } 50% { background: #450a0a; } 100% { background: #080808; } }
 
         .lock-box { border: 2px solid var(--gold); padding: 30px; text-align: center; background: #000; margin-top: 15vh; border-radius: 15px; width: 300px; }
         .secure-note { color: #888; font-size: 11px; margin-bottom: 15px; line-height: 1.6; }
@@ -417,7 +418,7 @@
             
             let html = '';
             candidates.forEach(c => {
-                html += `<div class="scan-item" style="border-right: 5px solid ${c.isPump ? 'var(--green)' : 'var(--red)'}">
+                html += `<div class="scan-item" id="item-${c.symbol}" style="border-right: 5px solid ${c.isPump ? 'var(--green)' : 'var(--red)'}">
                     <div style="text-align:right">
                         <div style="color:var(--gold); font-weight:bold; font-size:16px;">
                             ${c.isPump ? '🚀 ' : '📉 '}${c.symbol}
@@ -581,7 +582,10 @@
 
             if (buyP > 62 && immSupport > immResistance) {
                 sigBuffer.buy++; sigBuffer.sell = 0; spoofCounter = 0;
-                document.body.classList.remove('danger-blink');
+                // إزالة الوميض من الحقل عند زوال الخطر
+                const item = document.getElementById(`item-${currentSymbol}`);
+                if(item) item.classList.remove('danger-blink');
+
                 if (sigBuffer.buy >= 3) { 
                     if(sigBuffer.buy === 3) playSniperWhistle(false); 
                     aiDec.innerText = "🚀 SNIPE BUY: TARGETING GOAL"; 
@@ -592,12 +596,13 @@
                 }
             } else if (sellP > 65 || rugPullDanger) { 
                 spoofCounter++;
-                // فلتر الخداع: يجب أن يستمر سحب الجدار أو ضغط البيع لـ 3 تحديثات
                 if (spoofCounter >= 3 || rugPullDanger) {
                     sigBuffer.sell++; sigBuffer.buy = 0; 
                     if (sigBuffer.sell === 1) { 
                         playSniperWhistle(true);
-                        document.body.classList.add('danger-blink');
+                        // تفعيل الوميض على حقل العملة المقصودة فقط
+                        const item = document.getElementById(`item-${currentSymbol}`);
+                        if(item) item.classList.add('danger-blink');
                     }
                     aiDec.innerText = rugPullDanger ? "🚨 RUG PULL - EXIT NOW 💀" : "📉 EXECUTION: VERTICAL FALL"; 
                     aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = rugPullDanger ? "98%" : "89%"; 
@@ -606,10 +611,10 @@
                     aiDec.style.color = "var(--red)"; aiC.innerText = "70%";
                 }
             } else { 
-                // إذا كان درع الدعم فعالاً، لا تصفر الإشارة فوراً عند التذبذب البسيط
                 if (!supportShield.innerText.includes("🚀")) {
                     sigBuffer.buy = 0; sigBuffer.sell = 0; spoofCounter = 0;
-                    document.body.classList.remove('danger-blink');
+                    const item = document.getElementById(`item-${currentSymbol}`);
+                    if(item) item.classList.remove('danger-blink');
                     aiDec.innerText = "🟡 NEUTRAL - WATCHING WALLS"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "--%"; 
                 }
             }
