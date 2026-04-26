@@ -215,14 +215,25 @@
     let lockedScannerCoins = new Map();
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playSniperWhistle() {
+    
+    // صافرة القنص المتطورة (لصيد الحيتان وتجنب سحب البساط)
+    function playSniperWhistle(isDanger = false) {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
-        osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.4);
+        osc.type = isDanger ? 'sawtooth' : 'sine';
+        
+        if (isDanger) {
+            // صافرة خطر متقطعة وسريعة
+            osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+        } else {
+            // صافرة قنص صاعدة وهادئة
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+            osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.4);
+        }
+        
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
         osc.start(); osc.stop(audioCtx.currentTime + 0.4);
@@ -302,13 +313,11 @@
             const now = Date.now();
             for (let [sym, expire] of lockedScannerCoins) { if (now > expire) lockedScannerCoins.delete(sym); }
             
-            // دمج عملات ألفا في الماسح (أهم خطوة)
             let alphaSymbols = Array.from(lockedAlphaCoins.keys());
             
             let spikeCandidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
-                // تصفية عملات ألفا أو الميمات المتهيأة
                 const isAlpha = alphaSymbols.includes(c.symbol);
                 return c.symbol.endsWith('USDT') && (isAlpha || (change >= 0 && change <= 15 && volume > 5000000));
             }).map(c => {
@@ -549,8 +558,12 @@
             
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
             
+            // شروط سيدزو السريعة والمتوازنة (62% سيولة + تأكيد 3 مرات)
             const strongBuyCriteria = buyP > 62 && (tB/1000000) > 3;
             const strongSellCriteria = sellP > 62 && (tS/1000000) > 3;
+            
+            // كاشف سحب البساط (Dumping High-Sensitivity)
+            const rugPullDanger = sellP > 55 && sigBuffer.buy > 0;
 
             if(strongBuyCriteria) { 
                 sigBuffer.buy++; sigBuffer.sell = 0; 
@@ -562,12 +575,12 @@
                     aiDec.innerText = "⏳ تأكيد شراء.. (" + sigBuffer.buy + "/3)";
                     aiDec.style.color = "var(--green)"; aiC.innerText = "75%";
                 }
-            } else if(strongSellCriteria) { 
+            } else if(strongSellCriteria || rugPullDanger) { 
                 sigBuffer.sell++; sigBuffer.buy = 0; 
-                if(sigBuffer.sell >= 3) {
-                    if(sigBuffer.sell === 3) playSniperWhistle();
-                    aiDec.innerText = "📉 قنص بيع مؤكد"; 
-                    aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "89%"; 
+                if(sigBuffer.sell >= 3 || rugPullDanger) {
+                    if(sigBuffer.sell === 3 || (rugPullDanger && sigBuffer.sell === 1)) playSniperWhistle(true);
+                    aiDec.innerText = rugPullDanger ? "⚠️ سحب بساط - اخرج" : "📉 قنص بيع مؤكد"; 
+                    aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = rugPullDanger ? "98%" : "89%"; 
                 } else {
                     aiDec.innerText = "⏳ تأكيد بيع.. (" + sigBuffer.sell + "/3)";
                     aiDec.style.color = "var(--red)"; aiC.innerText = "75%";
