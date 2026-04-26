@@ -13,7 +13,6 @@
         .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
         body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; }
         
-        /* وميض الخطر */
         .danger-blink { animation: red-flash 0.6s infinite; }
         @keyframes red-flash { 0% { box-shadow: inset 0 0 50px #450a0a; } 50% { box-shadow: inset 0 0 100px #ef4444; } 100% { box-shadow: inset 0 0 50px #450a0a; } }
 
@@ -189,7 +188,7 @@
 
             <div id="s-walls"></div>
             <div class="ai-signal-box">
-                <div id="support-shield-text" style="font-size:11px; color:var(--green); font-weight:bold; border-bottom:1px solid #222; padding-bottom:5px; margin-bottom:8px;">🛡️ درع الدعم: فعال</div>
+                <div id="support-shield-text" style="font-size:11px; color:var(--green); font-weight:bold; border-bottom:1px solid #222; padding-bottom:5px; margin-bottom:8px;">🛡️ SUPPORT SHIELD: ACTIVE</div>
                 <div id="ai-decision">Analyzing...</div>
                 <div class="ai-meta"><span>TARGET: <span id="ai-target">--</span></span><span>ACCURACY: <span id="ai-conf">--</span></span></div>
             </div>
@@ -390,7 +389,7 @@
                             ${isStrong ? '<span class="hunt-tag">تجميع حيتان 🔥</span>' : ''}
                         </div>
                         <div style="color:var(--green); font-size:11px;">PRE-EXPLOSION: +5% ~ +15%</div>
-                        <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | CHG: ${c.priceChangePercent}%</div>
+                        <div style="color:#888; font-size:10px;">Vol: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | CHG: ${c.priceChangePercent}%</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--green); color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">صيد 🎯</button>
                 </div>`;
@@ -558,8 +557,8 @@
             let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
             
-            document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>حجم: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
-            document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>حجم: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
+            document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
+            document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
             
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
             const supportShield = document.getElementById('support-shield-text');
@@ -568,10 +567,10 @@
 
             // --- خوارزمية درع الدعم (Support Shield) ---
             if (topBid.p >= lastSupportWall && lastSupportWall !== 0) {
-                supportShield.innerText = "🛡️ درع الدعم: الحيتان يسندون السعر 🚀";
+                supportShield.innerText = "🛡️ SUPPORT SHIELD: ACTIVE 🚀";
                 supportShield.style.color = "var(--green)";
             } else if (topBid.p < lastSupportWall * 0.98) {
-                supportShield.innerText = "⚠️ درع الدعم: تم سحب جدران السيولة";
+                supportShield.innerText = "⚠️ SUPPORT SHIELD: WALLS REMOVED";
                 supportShield.style.color = "var(--gold)";
             }
             lastSupportWall = topBid.p;
@@ -636,18 +635,18 @@
             const sensitivity = parseInt(document.getElementById('ice-sensitivity').value);
             if (lastBids.length > 0 && bids[0][0] === lastBids[0][0]) {
                 let d = parseFloat(bids[0][1]) - parseFloat(lastBids[0][1]), amt = d * bids[0][0];
-                if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'فريق شراء'});
+                if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'BUY TEAM'});
             }
             if (lastAsks.length > 0 && asks[0][0] === lastAsks[0][0]) {
                 let d = parseFloat(asks[0][1]) - parseFloat(lastAsks[0][1]), amt = d * asks[0][0];
-                if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'فريق تصريف'});
+                if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'SELL TEAM'});
             }
             if(found.length > 0) {
                 const list = document.getElementById('iceberg-list');
                 found.forEach(ice => {
                     const row = document.createElement('div'); row.className = 'row';
                     const mVal = ice.m >= 1000000 ? (ice.m/1000000).toFixed(2) + "M" : (ice.m/1000).toFixed(1) + "K";
-                    row.innerHTML = `<span style="color:${ice.t==='فريق شراء'?'var(--green)':'var(--red)'}">${ice.t}</span><span style="color:var(--gold)">$${mVal}</span><span>$${parseFloat(ice.p).toLocaleString()}</span>`;
+                    row.innerHTML = `<span style="color:${ice.t==='BUY TEAM'?'var(--green)':'var(--red)'}">${ice.t}</span><span style="color:var(--gold)">$${mVal}</span><span>$${parseFloat(ice.p).toLocaleString()}</span>`;
                     list.prepend(row); if (list.children.length > 5) list.removeChild(list.lastChild);
                 });
             }
