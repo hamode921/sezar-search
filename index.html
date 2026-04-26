@@ -539,7 +539,7 @@
             
             let tB = bids.reduce((s,b)=>s+(b.p*b.v),0), tS = asks.reduce((s,a)=>s+(a.p*a.v),0);
             let buyP = (tB/(tB+tS)*100), sellP = 100 - buyP;
-            document.getElementById('buy-sell-display').innerText = `شراء: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
+            document.getElementById('buy-sell-display').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
             
             let lW = Math.max(1, Math.round((tB/1000000) * 1.5)), sW = Math.max(1, Math.round((tS/1000000) * 1.5));
             document.getElementById('lw-count').innerText = lW;
