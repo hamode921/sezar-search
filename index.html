@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SEZAR-PHANTOM PRO ULTIMATE</title>
+    <title>SEZAR-PHANTOM PRO ULTIMATE - REPAIRED</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
@@ -11,9 +11,8 @@
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
         .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
-        body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; }
+        body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; transition: background 0.3s; }
         
-        /* وميض الخطر */
         .danger-blink { animation: red-flash 0.6s infinite; }
         @keyframes red-flash { 0% { box-shadow: inset 0 0 50px #450a0a; } 50% { box-shadow: inset 0 0 100px #ef4444; } 100% { box-shadow: inset 0 0 50px #450a0a; } }
 
@@ -215,11 +214,12 @@
     
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt, huntInt, pdInt, alphaInt;
     let sigBuffer = { buy: 0, sell: 0 }, lastSupportWall = 0, lastBidsTotal = 0, spoofCounter = 0;
-    let wallStabilityCounter = 0; // عداد ثبات الجدار
-    let lastTopBidPrice = 0; // سعر آخر جدار رصده النظام
+    let wallStabilityCounter = 0; 
+    let lastTopBidPrice = 0; 
     let lastVolMap = new Map();
     let lockedAlphaCoins = new Map();
     let lockedScannerCoins = new Map();
+    let lastSignalTime = 0; // لمنع التخبط السريع بين الإشارات
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
@@ -543,8 +543,8 @@
             document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(sellBalls);
             
             const sig = document.getElementById('sig-box');
-            sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH CONFIRMED" : "🔴 SIGNAL: BEARISH CONFIRMED";
-            sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish";
+            sig.innerText = buyP > 55 ? "🟢 SIGNAL: BULLISH" : (buyP < 45 ? "🔴 SIGNAL: BEARISH" : "🟡 SIGNAL: NEUTRAL");
+            sig.className = buyP > 55 ? "sig-bullish" : (buyP < 45 ? "sig-bearish" : "");
             
             let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
@@ -554,67 +554,61 @@
             
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
             const supportShield = document.getElementById('support-shield-text');
-            const immSupport = bids.slice(0, 10).reduce((s,b)=>s+b.v, 0);
-            const immResistance = asks.slice(0, 10).reduce((s,a)=>s+a.v, 0);
+            const immSupport = bids.slice(0, 15).reduce((s,b)=>s+b.v, 0);
+            const immResistance = asks.slice(0, 15).reduce((s,a)=>s+a.v, 0);
 
-            // --- خوارزمية اختبار ثبات الجدار وكشف التلاعب (Spoofing Detector) ---
+            // --- تصليح ثبات الجدار وكشف التلاعب ---
             if (topBid.p === lastTopBidPrice && lastTopBidPrice !== 0) {
-                wallStabilityCounter++; // الجدار صامد
+                wallStabilityCounter++;
             } else {
-                // إذا انسحب جدار ضخم فجأة والسعر قريب منه (تلاعب)
-                if (lastTopBidPrice !== 0 && topBid.p < lastTopBidPrice && (currentPrice - lastTopBidPrice) < (lastTopBidPrice * 0.001)) {
-                    sigBuffer.sell = 5; 
-                }
                 wallStabilityCounter = 0; 
             }
-            lastTopBidPrice = topBid.p;
 
-            // --- خوارزمية درع الدعم (Support Shield) ---
+            // --- تحديث درع الدعم ---
             if (topBid.p >= lastSupportWall && lastSupportWall !== 0) {
                 supportShield.innerText = "🛡️ SUPPORT SHIELD: ACTIVE 🚀";
                 supportShield.style.color = "var(--green)";
-            } else if (topBid.p < lastSupportWall * 0.98) {
-                supportShield.innerText = "⚠️ SUPPORT SHIELD: WALLS REMOVED";
+            } else {
+                supportShield.innerText = "⚠️ SUPPORT SHIELD: FRAGILE";
                 supportShield.style.color = "var(--gold)";
             }
             lastSupportWall = topBid.p;
 
-            // --- خوارزمية الإعدام وسحب البساط (Executioner Logic) ---
-            const rugPullDanger = (sellP > 55 && sigBuffer.buy > 0) || (immSupport < lastBidsTotal * 0.4) || (sigBuffer.sell >= 5);
-
-            if (buyP > 62 && immSupport > immResistance && wallStabilityCounter >= 3) {
-                sigBuffer.buy++; sigBuffer.sell = 0; spoofCounter = 0;
-                document.body.classList.remove('danger-blink');
-                if (sigBuffer.buy >= 3) { 
-                    if(sigBuffer.buy === 3) playSniperWhistle(false); 
-                    aiDec.innerText = "🚀 SNIPE BUY: TARGETING GOAL"; 
-                    aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "91%"; 
-                } else {
-                    aiDec.innerText = "⏳ CONFIRMING.. (" + sigBuffer.buy + "/3)";
-                    aiDec.style.color = "var(--green)"; aiC.innerText = "75%";
-                }
-            } else if (sellP > 65 || rugPullDanger) { 
-                spoofCounter++;
-                if (spoofCounter >= 3 || rugPullDanger) {
-                    sigBuffer.sell++; sigBuffer.buy = 0; 
-                    if (sigBuffer.sell === 1) { 
-                        playSniperWhistle(true);
-                        document.body.classList.add('danger-blink');
-                    }
-                    aiDec.innerText = rugPullDanger ? "🚨 RUG PULL - EXIT NOW 💀" : "📉 EXECUTION: VERTICAL FALL"; 
-                    aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = rugPullDanger ? "98%" : "89%"; 
-                } else {
-                    aiDec.innerText = "⏳ WATCHING.. (" + spoofCounter + "/3)";
-                    aiDec.style.color = "var(--red)"; aiC.innerText = "70%";
-                }
-            } else { 
-                if (!supportShield.innerText.includes("🚀")) {
-                    sigBuffer.buy = 0; sigBuffer.sell = 0; spoofCounter = 0;
+            // --- المنطق المطور لاتخاذ القرار (أكثر ثباتاً) ---
+            const now = Date.now();
+            // الدخول: يتطلب سيولة شراء > 65% + استقرار لـ 4 دورات + فارق زمني
+            if (buyP > 65 && immSupport > immResistance && wallStabilityCounter >= 4) {
+                if (now - lastSignalTime > 5000) { 
+                    sigBuffer.buy++; sigBuffer.sell = 0;
                     document.body.classList.remove('danger-blink');
-                    aiDec.innerText = "🟡 NEUTRAL - WATCHING WALLS"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "--%"; 
+                    if (sigBuffer.buy >= 3) {
+                        playSniperWhistle(false);
+                        aiDec.innerText = "🚀 SNIPE BUY: TARGET REACHED";
+                        aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%";
+                        lastSignalTime = now;
+                    }
                 }
+            } 
+            // الخروج: سيطرة بيع > 65% أو اختفاء مفاجئ للدعم > 70%
+            else if (sellP > 65 || (lastBidsTotal > 0 && immSupport < lastBidsTotal * 0.3)) {
+                if (now - lastSignalTime > 3000) {
+                    sigBuffer.sell++; sigBuffer.buy = 0;
+                    playSniperWhistle(true);
+                    document.body.classList.add('danger-blink');
+                    aiDec.innerText = "🚨 RUG PULL / EXIT 💀";
+                    aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "99%";
+                    lastSignalTime = now;
+                }
+            } 
+            // حالة الانتظار
+            else {
+                sigBuffer.buy = 0; sigBuffer.sell = 0;
+                document.body.classList.remove('danger-blink');
+                aiDec.innerText = "🟡 MONITORING FLOW"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "--%";
             }
+
             lastBidsTotal = immSupport;
+            lastTopBidPrice = topBid.p;
         } catch (e) {}
     }
 
