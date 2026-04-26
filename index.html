@@ -184,7 +184,7 @@
 
             <div id="s-walls"></div>
             <div class="ai-signal-box">
-                <div style="font-size:11px;color:var(--gold);font-weight:bold;border-bottom:1px solid #222;padding-bottom:5px;margin-bottom:8px;">🤖 CAESAR SnipAI v2.0 (90%+)</div>
+                <div style="font-size:11px;color:var(--gold);font-weight:bold;border-bottom:1px solid #222;padding-bottom:5px;margin-bottom:8px;">🤖 CAESAR SnipAI v2.0 (High Precision)</div>
                 <div id="ai-decision">ANALYZING...</div>
                 <div class="ai-meta"><span>TARGET: <span id="ai-target">--</span></span><span>ACCURACY: <span id="ai-conf">--</span></span></div>
             </div>
@@ -214,21 +214,18 @@
     let lockedAlphaCoins = new Map();
     let lockedScannerCoins = new Map();
 
-    // نظام التنبيه الصوتي
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSniperWhistle() {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        osc.connect(gain); gain.connect(audioCtx.destination);
         osc.type = 'sine';
         osc.frequency.setValueAtTime(880, audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
         osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.4);
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.4);
     }
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
@@ -535,36 +532,35 @@
             document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
             document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
             
-            // نظام تصفية الدقة 90% (Strict Filter)
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
             
-            // شروط الدخول الذهبية (سيولة + ثبات + جدران)
-            const strongBuyCriteria = buyP > 70 && (tB/1000000) > 5;
-            const strongSellCriteria = sellP > 70 && (tS/1000000) > 5;
+            // خلطة سيدزو السريعة والمتوازنة (62% سيولة + تأكيد 3 مرات)
+            const strongBuyCriteria = buyP > 62 && (tB/1000000) > 3;
+            const strongSellCriteria = sellP > 62 && (tS/1000000) > 3;
 
             if(strongBuyCriteria) { 
                 sigBuffer.buy++; sigBuffer.sell = 0; 
-                if(sigBuffer.buy >= 5) { // تأكيد 5 مرات متتالية (ثبات)
-                    if(sigBuffer.buy === 5) playSniperWhistle(); // صافرة عند أول تأكيد
+                if(sigBuffer.buy >= 3) { 
+                    if(sigBuffer.buy === 3) playSniperWhistle(); 
                     aiDec.innerText = "🚀 قنص شراء مؤكد"; 
-                    aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; 
+                    aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "91%"; 
                 } else {
-                    aiDec.innerText = "⏳ جاري التأكيد الشراء (" + sigBuffer.buy + "/5)";
-                    aiDec.style.color = "var(--green)"; aiC.innerText = "70%";
+                    aiDec.innerText = "⏳ تأكيد شراء.. (" + sigBuffer.buy + "/3)";
+                    aiDec.style.color = "var(--green)"; aiC.innerText = "75%";
                 }
             } else if(strongSellCriteria) { 
                 sigBuffer.sell++; sigBuffer.buy = 0; 
-                if(sigBuffer.sell >= 5) {
-                    if(sigBuffer.sell === 5) playSniperWhistle();
+                if(sigBuffer.sell >= 3) {
+                    if(sigBuffer.sell === 3) playSniperWhistle();
                     aiDec.innerText = "📉 قنص بيع مؤكد"; 
-                    aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "92%"; 
+                    aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "89%"; 
                 } else {
-                    aiDec.innerText = "⏳ جاري التأكيد البيع (" + sigBuffer.sell + "/5)";
-                    aiDec.style.color = "var(--red)"; aiC.innerText = "70%";
+                    aiDec.innerText = "⏳ تأكيد بيع.. (" + sigBuffer.sell + "/3)";
+                    aiDec.style.color = "var(--red)"; aiC.innerText = "75%";
                 }
             } else { 
                 sigBuffer.buy = 0; sigBuffer.sell = 0; 
-                aiDec.innerText = "🟡 سيولة ضعيفة - لا تدخل"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "--%"; 
+                aiDec.innerText = "🟡 سيولة متذبذبة - راقب"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "--%"; 
             }
         } catch (e) {}
     }
@@ -608,3 +604,4 @@
 </script>
 </body>
 </html>
+
