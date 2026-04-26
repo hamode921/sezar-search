@@ -13,9 +13,8 @@
         .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
         body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; }
         
-        /* وميض الخطر للحقل فقط */
-        .danger-blink { animation: red-flash 0.6s infinite !important; border: 2px solid var(--red) !important; box-shadow: inset 0 0 50px #450a0a !important; }
-        @keyframes red-flash { 0% { background: #080808; } 50% { background: #450a0a; } 100% { background: #080808; } }
+        .danger-blink { animation: red-flash 0.6s infinite; }
+        @keyframes red-flash { 0% { box-shadow: inset 0 0 50px #450a0a; } 50% { box-shadow: inset 0 0 100px #ef4444; } 100% { box-shadow: inset 0 0 50px #450a0a; } }
 
         .lock-box { border: 2px solid var(--gold); padding: 30px; text-align: center; background: #000; margin-top: 15vh; border-radius: 15px; width: 300px; }
         .secure-note { color: #888; font-size: 11px; margin-bottom: 15px; line-height: 1.6; }
@@ -76,10 +75,10 @@
 <div id="zoom-wrapper">
     <div id="zoom-container">
         <div id="auth-screen" class="lock-box">
-            <div style="color:var(--gold); font-weight:bold; margin-bottom:20px;">🔒 Activate SEZAR-PHANTOM PRO</div>
+            <div style="color:var(--gold); font-weight:bold; margin-bottom:20px;">🔒 تفعيل SEZAR-PHANTOM PRO</div>
             <div class="secure-note">هذا الرمز يعمل على جهاز واحد فقط<br>ولا يعمل على جهاز غيره نهائياً</div>
             <input type="password" id="pass-key" class="pass" placeholder="•••••">
-            <button onclick="activate()" class="login-btn">LOGIN</button>
+            <button onclick="activate()" class="login-btn">تسجيل دخول</button>
             <div id="error-msg" style="color: var(--red); font-size: 12px; margin-top: 10px; display: none; font-weight: bold;"></div>
             <div style="display:flex; justify-content:space-around; margin-top:15px; border-top:1px solid #222; padding-top:10px;">
                 <a href="https://t.me/se44se" target="_blank" style="color:var(--gold); text-decoration:none; font-size:10px;">✈️ تليجرام</a>
@@ -90,10 +89,10 @@
         <div id="alpha-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:var(--gold);">ALPHA WEB3</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn active" onclick="switchTab('alpha')">🪐 ALPHA</button>
-                <button class="tab-btn" onclick="switchTab('search')">🔍 SEARCH</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ SCANNER</button>
-                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 WHALE</button>
+                <button class="tab-btn active" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div id="alpha-list"></div>
@@ -102,23 +101,23 @@
         <div id="search-screen">
             <div class="sezar-brand"><span class="sub-text">「 SEZAR-PHANTOM 」</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ALPHA</button>
-                <button class="tab-btn active" onclick="switchTab('search')">🔍 SEARCH</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ SCANNER</button>
-                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 WHALE</button>
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn active" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
-            <input type="text" class="search-input" id="search-input" placeholder="🔍 Search Spot & Futures..." oninput="searchCoins()">
+            <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث (Spot & Futures)..." oninput="searchCoins()">
             <div id="results-list"></div>
         </div>
 
         <div id="scanner-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:var(--ghost);">WHALE SCANNER</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ALPHA</button>
-                <button class="tab-btn" onclick="switchTab('search')">🔍 SEARCH</button>
-                <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ SCANNER</button>
-                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 WHALE</button>
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div id="scanner-list"></div>
@@ -127,10 +126,10 @@
         <div id="whale-hunt-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:var(--green);">WHALE ACCUMULATION</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ALPHA</button>
-                <button class="tab-btn" onclick="switchTab('search')">🔍 SEARCH</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ SCANNER</button>
-                <button class="tab-btn active" onclick="switchTab('whale-hunt')">🐋 WHALE</button>
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn active" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div id="whale-hunt-list"></div>
@@ -139,10 +138,10 @@
         <div id="pump-dump-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:var(--red);">PUMP & DUMP RADAR</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ALPHA</button>
-                <button class="tab-btn" onclick="switchTab('search')">🔍 SEARCH</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ SCANNER</button>
-                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 WHALE</button>
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
                 <button class="tab-btn active" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div id="pump-dump-list"></div>
@@ -150,7 +149,7 @@
 
         <div id="radar-ui">
             <div class="header">
-                <button class="back-btn" onclick="goBack()">🔙 Back</button>
+                <button class="back-btn" onclick="goBack()">🔙 رجوع</button>
                 <h2 id="radar-title">「 SEZAR-PHANTOM 」</h2>
                 <p id="current-coin-name" style="font-size:11px; margin:0;">[ BTCUSDT ]</p>
             </div>
@@ -160,7 +159,7 @@
                 <div id="sell-wall-line" class="chart-wall-line" style="background: var(--red); display: none;"><span class="wall-label" style="color: var(--red);">SELL: <span id="sw-vol"></span></span></div>
                 <div id="buy-wall-line" class="chart-wall-line" style="background: var(--green); display: none;"><span class="wall-label" style="color: var(--green);">BUY: <span id="bw-vol"></span></span></div>
             </div>
-            <div class="timer-text">LIQUIDITY UPDATE: <span id="timer">30</span>s</div>
+            <div class="timer-text">تحديث السيولة خلال: <span id="timer">30</span> ثانية</div>
             <div id="buy-sell-per">
                 <button class="inline-btn" onclick="setZoom(0.6)">-</button>
                 <span id="buy-sell-display">BUY: --% | SELL: --%</span>
@@ -189,20 +188,20 @@
 
             <div id="s-walls"></div>
             <div class="ai-signal-box">
-                <div id="support-shield-text" style="font-size:11px; color:var(--green); font-weight:bold; border-bottom:1px solid #222; padding-bottom:5px; margin-bottom:8px;">🛡️ SUPPORT SHIELD: ACTIVE</div>
-                <div id="ai-decision">Analyzing...</div>
-                <div class="ai-meta"><span>TARGET: <span id="ai-target">--</span></span><span>ACCURACY: <span id="ai-conf">--</span></span></div>
+                <div id="support-shield-text" style="font-size:11px; color:var(--green); font-weight:bold; border-bottom:1px solid #222; padding-bottom:5px; margin-bottom:8px;">🛡️ درع الدعم: فعال</div>
+                <div id="ai-decision">جاري التحليل...</div>
+                <div class="ai-meta"><span>الهدف: <span id="ai-target">--</span></span><span>الدقة: <span id="ai-conf">--</span></span></div>
             </div>
             <div id="b-walls" style="margin-top:20px;"></div>
             <div class="ice-card">
                 <div style="font-size:11px; color:var(--ghost); display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
-                    <span>Iceberg Detector</span>
+                    <span>كاشف أوامر الفريق (Iceberg)</span>
                     <span id="ice-threshold-display" style="background:#4c1d95; color:#fff; padding:2px 8px; border-radius:10px;">50K</span>
                 </div>
                 <div style="padding: 10px 0;"><input type="range" id="ice-sensitivity" min="1000" max="100000" step="1000" value="50000" style="width: 100%; accent-color: var(--ghost);" oninput="document.getElementById('ice-threshold-display').innerText = (this.value >= 1000 ? (this.value/1000).toFixed(0) + 'K' : this.value)"></div>
                 <div id="iceberg-list"></div>
             </div>
-            <div id="sig-box">WAITING...</div>
+            <div id="sig-box">بانتظار الإشارة...</div>
         </div>
     </div>
 </div>
@@ -215,6 +214,8 @@
     
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt, huntInt, pdInt, alphaInt;
     let sigBuffer = { buy: 0, sell: 0 }, lastSupportWall = 0, lastBidsTotal = 0, spoofCounter = 0;
+    let wallStabilityCounter = 0; // لضبط اختبار ثبات الجدار
+    let lastTopBidPrice = 0; // تتبع سعر الجدار الأخير
     let lastVolMap = new Map();
     let lockedAlphaCoins = new Map();
     let lockedScannerCoins = new Map();
@@ -390,7 +391,7 @@
                             ${isStrong ? '<span class="hunt-tag">تجميع حيتان 🔥</span>' : ''}
                         </div>
                         <div style="color:var(--green); font-size:11px;">PRE-EXPLOSION: +5% ~ +15%</div>
-                        <div style="color:#888; font-size:10px;">Vol: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | CHG: ${c.priceChangePercent}%</div>
+                        <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | CHG: ${c.priceChangePercent}%</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--green); color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">صيد 🎯</button>
                 </div>`;
@@ -404,44 +405,36 @@
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('pump-dump-list');
+            let alphaSymbols = Array.from(lockedAlphaCoins.keys());
             
-            // جلب بيانات السيولة اللحظية لافضل 20 عملة لتحديد حالة "الحاضر"
-            const depthPromises = data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 15000000)
-                                      .sort((a,b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
-                                      .slice(0, 20)
-                                      .map(async c => {
-                                          const dRes = await fetch(`https://api.binance.com/api/v3/depth?symbol=${c.symbol}&limit=100`);
-                                          const dData = await dRes.json();
-                                          let tB = dData.bids.reduce((s,b)=>s+(parseFloat(b[0])*parseFloat(b[1])),0);
-                                          let tS = dData.asks.reduce((s,a)=>s+(parseFloat(a[0])*parseFloat(a[1])),0);
-                                          return { ...c, tB, tS, liveRatio: (tB/(tB+tS)*100) };
-                                      });
+            let candidates = data.filter(c => {
+                const vol = parseFloat(c.quoteVolume);
+                const chg = parseFloat(c.priceChangePercent);
+                const isAlpha = alphaSymbols.includes(c.symbol);
+                return c.symbol.endsWith('USDT') && (isAlpha || Math.abs(chg) > 10) && vol > 15000000;
+            }).map(c => {
+                const chg = parseFloat(c.priceChangePercent);
+                return { ...c, isPump: chg > 0 };
+            }).sort((a,b) => Math.abs(parseFloat(b.priceChangePercent)) - Math.abs(parseFloat(a.priceChangePercent))).slice(0, 12);
             
-            const liveData = await Promise.all(depthPromises);
             let html = '';
-            
-            liveData.forEach(c => {
-                // شرط الوميض: البيع اللحظي اكبر من الشراء بمرتين (الحاضر)
-                const isDumpThreat = c.tS > (c.tB * 2);
-                const isPumpThreat = c.tB > (c.tS * 2);
-                const flashClass = isDumpThreat ? 'danger-blink' : '';
-                
-                html += `<div class="scan-item ${flashClass}" id="item-${c.symbol}" style="border-right: 5px solid ${c.liveRatio > 50 ? 'var(--green)' : 'var(--red)'}">
+            candidates.forEach(c => {
+                html += `<div class="scan-item" style="border-right: 5px solid ${c.isPump ? 'var(--green)' : 'var(--red)'}">
                     <div style="text-align:right">
                         <div style="color:var(--gold); font-weight:bold; font-size:16px;">
-                            ${c.liveRatio > 50 ? '🚀 ' : '📉 '}${c.symbol}
-                            ${isDumpThreat ? '<span class="dump-tag">LIVE DUMP ⚠️</span>' : (isPumpThreat ? '<span class="hunt-tag">LIVE PUMP 🔥</span>' : '')}
+                            ${c.isPump ? '🚀 ' : '📉 '}${c.symbol}
+                            ${c.isPump ? '<span class="hunt-tag">PUMPING 🔥</span>' : '<span class="dump-tag">DUMPING 📉</span>'}
                         </div>
-                        <div style="color:${c.liveRatio > 50 ? 'var(--green)' : 'var(--red)'}; font-size:11px;">
-                            LIVE RATIO: ${c.liveRatio.toFixed(1)}% | 24H: ${c.priceChangePercent}%
+                        <div style="color:${c.isPump ? 'var(--green)' : 'var(--red)'}; font-size:11px;">
+                            ${c.isPump ? 'MOON MISSION: ' + c.priceChangePercent + '%' : 'LIQUIDITY CRASH: ' + c.priceChangePercent + '%'}
                         </div>
                     </div>
-                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.liveRatio > 50 ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">
-                        ${c.liveRatio > 50 ? 'SNIPE' : 'WARNING'}
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                        ${c.isPump ? 'قنص 🎯' : 'تحذير ⚠️'}
                     </button>
                 </div>`;
             });
-            list.innerHTML = html || '<div style="color:#555; margin-top:20px;">Scanning Live Liquidity...</div>';
+            list.innerHTML = html || '<div style="color:#555; margin-top:20px;">جاري مراقبة التحركات العنيفة...</div>';
         } catch (e) {}
     }
 
@@ -560,44 +553,54 @@
             document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(sellBalls);
             
             const sig = document.getElementById('sig-box');
-            sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH CONFIRMED" : "🔴 SIGNAL: BEARISH CONFIRMED";
+            sig.innerText = buyP > 50 ? "🟢 إشارة: صعود مؤكد" : "🔴 إشارة: هبوط مؤكد";
             sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish";
             
             let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
             
-            document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
-            document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
+            document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 جدران تصريف:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>حجم: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
+            document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 جدران دعم:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>حجم: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
             
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
             const supportShield = document.getElementById('support-shield-text');
             const immSupport = bids.slice(0, 10).reduce((s,b)=>s+b.v, 0);
             const immResistance = asks.slice(0, 10).reduce((s,a)=>s+a.v, 0);
 
+            // --- خوارزمية اختبار ثبات الجدار وكشف التلاعب (Spoofing Detector) ---
+            if (topBid.p === lastTopBidPrice && lastTopBidPrice !== 0) {
+                wallStabilityCounter++; // الجدار صامد ولم يتم سحبه
+            } else {
+                // إذا انسحب جدار ضخم فجأة والسعر قريب جداً منه (دليل تلاعب)
+                if (lastTopBidPrice !== 0 && topBid.p < lastTopBidPrice && (currentPrice - lastTopBidPrice) < (lastTopBidPrice * 0.001)) {
+                    sigBuffer.sell = 5; // تحريك الإشارة للهبوط فوراً بسبب الغدر
+                }
+                wallStabilityCounter = 0; // جدار جديد أو سحب
+            }
+            lastTopBidPrice = topBid.p;
+
             // --- خوارزمية درع الدعم (Support Shield) ---
             if (topBid.p >= lastSupportWall && lastSupportWall !== 0) {
-                supportShield.innerText = "🛡️ SUPPORT SHIELD: ACTIVE 🚀";
+                supportShield.innerText = "🛡️ درع الدعم: الحيتان يسندون السعر 🚀";
                 supportShield.style.color = "var(--green)";
             } else if (topBid.p < lastSupportWall * 0.98) {
-                supportShield.innerText = "⚠️ SUPPORT SHIELD: WALLS REMOVED";
+                supportShield.innerText = "⚠️ درع الدعم: تم سحب جدران السيولة";
                 supportShield.style.color = "var(--gold)";
             }
             lastSupportWall = topBid.p;
 
             // --- خوارزمية الإعدام وسحب البساط (Executioner Logic) ---
-            const rugPullDanger = (sellP > 55 && sigBuffer.buy > 0) || (immSupport < lastBidsTotal * 0.4);
+            const rugPullDanger = (sellP > 55 && sigBuffer.buy > 0) || (immSupport < lastBidsTotal * 0.4) || (sigBuffer.sell >= 5);
 
-            if (buyP > 62 && immSupport > immResistance) {
+            if (buyP > 62 && immSupport > immResistance && wallStabilityCounter >= 3) {
                 sigBuffer.buy++; sigBuffer.sell = 0; spoofCounter = 0;
-                const item = document.getElementById(`item-${currentSymbol}`);
-                if(item) item.classList.remove('danger-blink');
-
+                document.body.classList.remove('danger-blink');
                 if (sigBuffer.buy >= 3) { 
                     if(sigBuffer.buy === 3) playSniperWhistle(false); 
-                    aiDec.innerText = "🚀 SNIPE BUY: TARGETING GOAL"; 
+                    aiDec.innerText = "🚀 قنص شراء: انطلاق للهدف"; 
                     aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "91%"; 
                 } else {
-                    aiDec.innerText = "⏳ CONFIRMING.. (" + sigBuffer.buy + "/3)";
+                    aiDec.innerText = "⏳ تأكيد دخول.. (" + sigBuffer.buy + "/3)";
                     aiDec.style.color = "var(--green)"; aiC.innerText = "75%";
                 }
             } else if (sellP > 65 || rugPullDanger) { 
@@ -606,21 +609,19 @@
                     sigBuffer.sell++; sigBuffer.buy = 0; 
                     if (sigBuffer.sell === 1) { 
                         playSniperWhistle(true);
-                        const item = document.getElementById(`item-${currentSymbol}`);
-                        if(item) item.classList.add('danger-blink');
+                        document.body.classList.add('danger-blink');
                     }
-                    aiDec.innerText = rugPullDanger ? "🚨 RUG PULL - EXIT NOW 💀" : "📉 EXECUTION: VERTICAL FALL"; 
+                    aiDec.innerText = rugPullDanger ? "🚨 سحب بساط - اخرج فوراً 💀" : "📉 إعدام العملة: هبوط عمودي"; 
                     aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = rugPullDanger ? "98%" : "89%"; 
                 } else {
-                    aiDec.innerText = "⏳ WATCHING.. (" + spoofCounter + "/3)";
+                    aiDec.innerText = "⏳ مراقبة غدر.. (" + spoofCounter + "/3)";
                     aiDec.style.color = "var(--red)"; aiC.innerText = "70%";
                 }
             } else { 
                 if (!supportShield.innerText.includes("🚀")) {
                     sigBuffer.buy = 0; sigBuffer.sell = 0; spoofCounter = 0;
-                    const item = document.getElementById(`item-${currentSymbol}`);
-                    if(item) item.classList.remove('danger-blink');
-                    aiDec.innerText = "🟡 NEUTRAL - WATCHING WALLS"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "--%"; 
+                    document.body.classList.remove('danger-blink');
+                    aiDec.innerText = "🟡 تذبذب سيولة - راقب الجدران"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "--%"; 
                 }
             }
             lastBidsTotal = immSupport;
@@ -645,18 +646,18 @@
             const sensitivity = parseInt(document.getElementById('ice-sensitivity').value);
             if (lastBids.length > 0 && bids[0][0] === lastBids[0][0]) {
                 let d = parseFloat(bids[0][1]) - parseFloat(lastBids[0][1]), amt = d * bids[0][0];
-                if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'BUY TEAM'});
+                if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'فريق شراء'});
             }
             if (lastAsks.length > 0 && asks[0][0] === lastAsks[0][0]) {
                 let d = parseFloat(asks[0][1]) - parseFloat(lastAsks[0][1]), amt = d * asks[0][0];
-                if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'SELL TEAM'});
+                if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'فريق تصريف'});
             }
             if(found.length > 0) {
                 const list = document.getElementById('iceberg-list');
                 found.forEach(ice => {
                     const row = document.createElement('div'); row.className = 'row';
                     const mVal = ice.m >= 1000000 ? (ice.m/1000000).toFixed(2) + "M" : (ice.m/1000).toFixed(1) + "K";
-                    row.innerHTML = `<span style="color:${ice.t==='BUY TEAM'?'var(--green)':'var(--red)'}">${ice.t}</span><span style="color:var(--gold)">$${mVal}</span><span>$${parseFloat(ice.p).toLocaleString()}</span>`;
+                    row.innerHTML = `<span style="color:${ice.t==='فريق شراء'?'var(--green)':'var(--red)'}">${ice.t}</span><span style="color:var(--gold)">$${mVal}</span><span>$${parseFloat(ice.p).toLocaleString()}</span>`;
                     list.prepend(row); if (list.children.length > 5) list.removeChild(list.lastChild);
                 });
             }
