@@ -552,7 +552,7 @@
             document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(sellBalls);
             
             const sig = document.getElementById('sig-box');
-            sig.innerText = buyP > 50 ? "🟢 إشارة: صعود مؤكد" : "🔴 إشارة: هبوط مؤكد";
+            sig.innerText = buyP > 50 ? "🟢 SIGNAL: BUY " : "🔴 SIGNAL:SELL";
             sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish";
             
             let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
