@@ -59,9 +59,6 @@
         .tab-btn { flex: 1; min-width: 80px; padding: 10px 5px; border-radius: 8px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 11px; }
         .tab-btn.active { background: var(--gold) !important; color: #000 !important; border: 1px solid var(--gold) !important; }
 
-        /* الصلاحيات - جراحي */
-        .tier-lock { display: none !important; }
-
         .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
         .hunt-tag { background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .dump-tag { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
@@ -94,9 +91,9 @@
             <div class="nav-tabs">
                 <button class="tab-btn active" onclick="switchTab('alpha')">🪐 ALPHA</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 SEARCH</button>
-                <button class="tab-btn btn-gold" onclick="switchTab('scanner')">🛰️ SCANNER</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ SCANNER</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 WHALE</button>
-                <button class="tab-btn btn-diamond" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
+                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div id="alpha-list"></div>
         </div>
@@ -106,9 +103,9 @@
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('alpha')">🪐 ALPHA</button>
                 <button class="tab-btn active" onclick="switchTab('search')">🔍 SEARCH</button>
-                <button class="tab-btn btn-gold" onclick="switchTab('scanner')">🛰️ SCANNER</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ SCANNER</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 WHALE</button>
-                <button class="tab-btn btn-diamond" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
+                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <input type="text" class="search-input" id="search-input" placeholder="🔍 Search Spot & Futures..." oninput="searchCoins()">
             <div id="results-list"></div>
@@ -121,7 +118,7 @@
                 <button class="tab-btn" onclick="switchTab('search')">🔍 SEARCH</button>
                 <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ SCANNER</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 WHALE</button>
-                <button class="tab-btn btn-diamond" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
+                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div id="scanner-list"></div>
         </div>
@@ -131,9 +128,9 @@
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('alpha')">🪐 ALPHA</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 SEARCH</button>
-                <button class="tab-btn btn-gold" onclick="switchTab('scanner')">🛰️ SCANNER</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ SCANNER</button>
                 <button class="tab-btn active" onclick="switchTab('whale-hunt')">🐋 WHALE</button>
-                <button class="tab-btn btn-diamond" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
+                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div id="whale-hunt-list"></div>
         </div>
@@ -143,7 +140,7 @@
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('alpha')">🪐 ALPHA</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 SEARCH</button>
-                <button class="tab-btn btn-gold" onclick="switchTab('scanner')">🛰️ SCANNER</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ SCANNER</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 WHALE</button>
                 <button class="tab-btn active" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
@@ -212,7 +209,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     
-    let userTier = 'silver'; // القيمة الافتراضية
+    // --- متغير الرتبة (جراحي) ---
+    let userTier = 'silver'; 
+
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt, huntInt, pdInt, alphaInt;
     let sigBuffer = { buy: 0, sell: 0 }, lastSupportWall = 0, lastBidsTotal = 0, spoofCounter = 0;
     let wallStabilityCounter = 0; 
@@ -238,13 +237,26 @@
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
-    // تطبيق الصلاحيات جراحياً
-    function applyTierPermissions() {
-        document.querySelectorAll('.btn-gold').forEach(b => { if(userTier === 'silver') b.classList.add('tier-lock'); else b.classList.remove('tier-lock'); });
-        document.querySelectorAll('.btn-diamond').forEach(b => { if(userTier !== 'diamond') b.classList.add('tier-lock'); else b.classList.remove('tier-lock'); });
-    }
-
     function switchTab(tab) {
+        // --- فحص الصلاحيات (جراحي) ---
+        const limits = {
+            'alpha': 'gold',
+            'scanner': 'gold',
+            'whale-hunt': 'gold',
+            'pump-dump': 'diamond'
+        };
+
+        if (limits[tab]) {
+            let locked = false;
+            if (userTier === 'silver') locked = true;
+            if (userTier === 'gold' && limits[tab] === 'diamond') locked = true;
+
+            if (locked) {
+                alert("⚠️ هذا القسم مخصص لترقية أعلى!\nللحصول على الترقية، يرجى التواصل مع المطور أسفل الشاشة ⬇️");
+                return; 
+            }
+        }
+
         document.getElementById('alpha-screen').style.display = tab === 'alpha' ? 'block' : 'none';
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
         document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
@@ -259,6 +271,7 @@
         if(tab === 'pump-dump') { updatePumpDump(); pdInt = setInterval(updatePumpDump, 5000); }
     }
 
+    // --- Flight Mode Alpha Update ---
     async function updateAlpha() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
@@ -266,6 +279,7 @@
             const list = document.getElementById('alpha-list');
             const now = Date.now();
             for (let [sym, expire] of lockedAlphaCoins) { if (now > expire) lockedAlphaCoins.delete(sym); }
+            
             let candidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
@@ -277,12 +291,15 @@
                 lastVolMap.set(c.symbol, currentVol);
                 return { ...c, volIncrease };
             }).filter(c => c.volIncrease > 1.0);
+            
             candidates.forEach(c => { if(!lockedAlphaCoins.has(c.symbol)) lockedAlphaCoins.set(c.symbol, now + 45000); });
+            
             let finalDisplay = [];
             for (let [sym, expire] of lockedAlphaCoins) {
                 const coinData = data.find(d => d.symbol === sym);
                 if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
             }
+            
             let html = '';
             finalDisplay.sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent)).forEach(c => {
                 html += `<div class="scan-item blink-border" style="border-left: 5px solid var(--gold); background: rgba(251, 191, 36, 0.05)">
@@ -427,8 +444,8 @@
             const doc = await db.collection("users").doc(savedKey).get();
             if (doc.exists) {
                 const data = doc.data();
-                userTier = data.tier || 'silver'; // جلب الرتبة
-                applyTierPermissions(); // تطبيق جراحي
+                // --- جلب الرتبة (جراحي) ---
+                userTier = data.tier || 'silver'; 
                 if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
                 if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); }
             }
@@ -443,8 +460,8 @@
         const doc = await db.collection("users").doc(k).get();
         if (doc.exists) { 
             const data = doc.data();
-            userTier = data.tier || 'silver'; // جلب الرتبة عند التفعيل
-            applyTierPermissions();
+            // --- جلب الرتبة عند التفعيل (جراحي) ---
+            userTier = data.tier || 'silver';
             if (data.expiryDate && new Date() > new Date(data.expiryDate)) { err.innerText = "❌ منتهي!"; err.style.display = 'block'; return; }
             let myId = localStorage.getItem('sz_device_id') || 'DEV-' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('sz_device_id', myId);
