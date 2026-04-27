@@ -70,7 +70,6 @@
         @keyframes blink-gold { 0% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } 50% { border-color: #555; box-shadow: none; } 100% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } }
         .blink-border { animation: blink-gold 0.6s infinite; border-width: 2px !important; }
 
-        /* --- ستايل الرسالة الاحترافية (جراحي) --- */
         #custom-alert {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;
@@ -85,7 +84,6 @@
             background: var(--gold); color: #000; border: none; padding: 12px 25px;
             border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;
         }
-        .alert-box button:active { transform: scale(0.95); }
     </style>
 </head>
 <body onload="checkAuth()">
@@ -234,7 +232,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     
-    // --- متغير الرتبة (جراحي) ---
     let userTier = 'silver'; 
 
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt, huntInt, pdInt, alphaInt;
@@ -262,39 +259,35 @@
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
-    // --- وظائف التنبيه المخصص (جراحي) ---
     function showAlert() { document.getElementById('custom-alert').style.display = 'flex'; }
     function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
     function switchTab(tab) {
-        // --- فحص الصلاحيات (جراحي) ---
+        // --- تعديل الصلاحيات: الفضي يفتح البحث والسكنر فقط ---
         const limits = {
             'alpha': 'gold',
-            'scanner': 'gold',
+            'scanner': 'silver', // السكنر صار متاح للفضي
             'whale-hunt': 'gold',
             'pump-dump': 'diamond'
         };
 
         if (limits[tab]) {
             let locked = false;
-            // فحص الرتبة من tier أو rank
-            if (userTier === 'silver') locked = true;
+            if (userTier === 'silver' && limits[tab] !== 'silver') locked = true;
             if (userTier === 'gold' && limits[tab] === 'diamond') locked = true;
 
             if (locked) {
-                showAlert(); // استخدام الرسالة المخصصة
+                showAlert();
                 return; 
             }
         }
 
-        // إخفاء كل الشاشات أولاً لضمان عدم التعليق (جراحي)
         const screens = ['auth-screen', 'alpha-screen', 'search-screen', 'scanner-screen', 'whale-hunt-screen', 'pump-dump-screen', 'radar-ui'];
         screens.forEach(s => {
             const el = document.getElementById(s);
             if(el) el.style.display = 'none';
         });
 
-        // إظهار الشاشة المطلوبة
         const target = (tab === 'radar') ? 'radar-ui' : tab + '-screen';
         if(document.getElementById(target)) document.getElementById(target).style.display = 'block';
         
@@ -305,7 +298,6 @@
         if(tab === 'pump-dump') { updatePumpDump(); pdInt = setInterval(updatePumpDump, 5000); }
     }
 
-    // --- Flight Mode Alpha Update ---
     async function updateAlpha() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
@@ -478,7 +470,6 @@
             const doc = await db.collection("users").doc(savedKey).get();
             if (doc.exists) {
                 const data = doc.data();
-                // وحدت سحب الرتبة لضمان عملها
                 userTier = data.tier || data.rank || 'silver'; 
                 if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
                 if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); }
