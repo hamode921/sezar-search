@@ -233,7 +233,6 @@
     const db = firebase.firestore();
     
     let userTier = 'silver'; 
-
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt, huntInt, pdInt, alphaInt;
     let sigBuffer = { buy: 0, sell: 0 }, lastSupportWall = 0, lastBidsTotal = 0, spoofCounter = 0;
     let wallStabilityCounter = 0; 
@@ -263,18 +262,20 @@
     function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
     function switchTab(tab) {
-        // --- تعديل الصلاحيات: الفضي يفتح البحث والسكنر فقط ---
+        // --- الجراحة الجدية (الذهبي يفتح البحث والسكنر والرادار فقط) ---
         const limits = {
-            'alpha': 'gold',
-            'scanner': 'silver', // السكنر صار متاح للفضي
-            'whale-hunt': 'gold',
+            'alpha': 'diamond',
+            'scanner': 'gold',
+            'whale-hunt': 'diamond',
             'pump-dump': 'diamond'
         };
 
         if (limits[tab]) {
             let locked = false;
-            if (userTier === 'silver' && limits[tab] !== 'silver') locked = true;
-            if (userTier === 'gold' && limits[tab] === 'diamond') locked = true;
+            // الفضي: يفتح البحث فقط (الرادار يفتح من نتائج البحث)
+            if (userTier === 'silver' && tab !== 'search') locked = true;
+            // الذهبي: يفتح البحث والسكنر (الرادار يفتح من النتائج)
+            if (userTier === 'gold' && (tab === 'alpha' || tab === 'whale-hunt' || tab === 'pump-dump')) locked = true;
 
             if (locked) {
                 showAlert();
@@ -305,7 +306,6 @@
             const list = document.getElementById('alpha-list');
             const now = Date.now();
             for (let [sym, expire] of lockedAlphaCoins) { if (now > expire) lockedAlphaCoins.delete(sym); }
-            
             let candidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
@@ -317,15 +317,12 @@
                 lastVolMap.set(c.symbol, currentVol);
                 return { ...c, volIncrease };
             }).filter(c => c.volIncrease > 1.0);
-            
             candidates.forEach(c => { if(!lockedAlphaCoins.has(c.symbol)) lockedAlphaCoins.set(c.symbol, now + 45000); });
-            
             let finalDisplay = [];
             for (let [sym, expire] of lockedAlphaCoins) {
                 const coinData = data.find(d => d.symbol === sym);
                 if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
             }
-            
             let html = '';
             finalDisplay.sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent)).forEach(c => {
                 html += `<div class="scan-item blink-border" style="border-left: 5px solid var(--gold); background: rgba(251, 191, 36, 0.05)">
@@ -464,35 +461,27 @@
     }
 
     async function checkAuth() {
-        const savedKey = localStorage.getItem('sz_ultimate_v1_key');
-        const myId = localStorage.getItem('sz_device_id');
-        if (savedKey && myId) {
-            const doc = await db.collection("users").doc(savedKey).get();
+        const key = localStorage.getItem('sz_ultimate_v1_key');
+        if (key) {
+            const doc = await db.collection("users").doc(key).get();
             if (doc.exists) {
                 const data = doc.data();
                 userTier = data.tier || data.rank || 'silver'; 
-                if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
-                if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); }
+                showSearch();
             }
         }
     }
-    
+
     async function activate() { 
         const k = document.getElementById('pass-key').value;
-        const err = document.getElementById('error-msg');
-        err.style.display = 'none';
         if(!k) return;
         const doc = await db.collection("users").doc(k).get();
         if (doc.exists) { 
             const data = doc.data();
             userTier = data.tier || data.rank || 'silver';
-            if (data.expiryDate && new Date() > new Date(data.expiryDate)) { err.innerText = "❌ منتهي!"; err.style.display = 'block'; return; }
-            let myId = localStorage.getItem('sz_device_id') || 'DEV-' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('sz_device_id', myId);
-            if (data.deviceId && data.deviceId !== myId) { err.innerText = "⚠️ جهاز آخر!"; err.style.display = 'block'; return; }
-            if (!data.deviceId) await db.collection("users").doc(k).update({ deviceId: myId });
-            localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); 
-        } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
+            localStorage.setItem('sz_ultimate_v1_key', k);
+            showSearch(); 
+        }
     }
 
     async function showSearch() {
@@ -542,11 +531,7 @@
         tInt = setInterval(() => { timeLeft--; if(timeLeft<0) timeLeft=30; document.getElementById('timer').innerText = timeLeft; }, 1000);
     }
 
-    function goBack() {
-        stopIntervals();
-        switchTab('search'); 
-    }
-
+    function goBack() { stopIntervals(); switchTab('search'); }
     function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt); timeLeft = 30; }
     
     async function updatePrice() { 
