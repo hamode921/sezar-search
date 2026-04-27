@@ -262,12 +262,12 @@
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
-    // --- وظائف التنبيه المخصص ---
+    // --- وظائف التنبيه المخصص (جراحي) ---
     function showAlert() { document.getElementById('custom-alert').style.display = 'flex'; }
     function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
     function switchTab(tab) {
-        // --- فحص الصلاحيات ---
+        // --- فحص الصلاحيات (جراحي) ---
         const limits = {
             'alpha': 'gold',
             'scanner': 'gold',
@@ -277,22 +277,28 @@
 
         if (limits[tab]) {
             let locked = false;
+            // فحص الرتبة من tier أو rank
             if (userTier === 'silver') locked = true;
             if (userTier === 'gold' && limits[tab] === 'diamond') locked = true;
 
             if (locked) {
-                showAlert();
+                showAlert(); // استخدام الرسالة المخصصة
                 return; 
             }
         }
 
+        // إخفاء كل الشاشات أولاً لضمان عدم التعليق (جراحي)
         const screens = ['auth-screen', 'alpha-screen', 'search-screen', 'scanner-screen', 'whale-hunt-screen', 'pump-dump-screen', 'radar-ui'];
         screens.forEach(s => {
             const el = document.getElementById(s);
-            if(el) el.style.display = (s === tab + '-screen' || s === tab) ? 'block' : 'none';
+            if(el) el.style.display = 'none';
         });
 
-        stopIntervals();
+        // إظهار الشاشة المطلوبة
+        const target = (tab === 'radar') ? 'radar-ui' : tab + '-screen';
+        if(document.getElementById(target)) document.getElementById(target).style.display = 'block';
+        
+        clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt);
         if(tab === 'alpha') { updateAlpha(); alphaInt = setInterval(updateAlpha, 5000); }
         if(tab === 'scanner') { updateScanner(); scanInt = setInterval(updateScanner, 5000); }
         if(tab === 'whale-hunt') { updateWhaleHunt(); huntInt = setInterval(updateWhaleHunt, 10000); }
@@ -472,7 +478,7 @@
             const doc = await db.collection("users").doc(savedKey).get();
             if (doc.exists) {
                 const data = doc.data();
-                // الفحص المزدوج للرتبة
+                // وحدت سحب الرتبة لضمان عملها
                 userTier = data.tier || data.rank || 'silver'; 
                 if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
                 if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); }
@@ -547,14 +553,10 @@
 
     function goBack() {
         stopIntervals();
-        switchTab('search');
+        switchTab('search'); 
     }
 
-    function stopIntervals() { 
-        clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); 
-        clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt); 
-        timeLeft = 30; 
-    }
+    function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt); timeLeft = 30; }
     
     async function updatePrice() { 
         try { 
