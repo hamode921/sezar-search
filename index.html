@@ -262,44 +262,37 @@
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
-    // --- وظائف التنبيه المخصص (جراحي) ---
+    // --- وظائف التنبيه المخصص ---
     function showAlert() { document.getElementById('custom-alert').style.display = 'flex'; }
     function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
     function switchTab(tab) {
-        // --- فحص الصلاحيات بناءً على طلبك بالملي (جراحي) ---
+        // --- فحص الصلاحيات ---
         const limits = {
-            'alpha': 'gold',         // الذهبي يفتح ألفا
-            'scanner': 'gold',       // الذهبي يفتح سكنر
-            'whale-hunt': 'gold',    // الذهبي يفتح حيتان
-            'pump-dump': 'diamond'   // الماسي يفتح بمب/دمب
+            'alpha': 'gold',
+            'scanner': 'gold',
+            'whale-hunt': 'gold',
+            'pump-dump': 'diamond'
         };
 
         if (limits[tab]) {
             let locked = false;
-            // المشترك الفضي (silver) مقفل عليه كل هذول
             if (userTier === 'silver') locked = true;
-            // المشترك الذهبي (gold) مقفل عليه فقط البمب/دمب
             if (userTier === 'gold' && limits[tab] === 'diamond') locked = true;
 
             if (locked) {
-                showAlert(); // إظهار الرسالة الاحترافية
+                showAlert();
                 return; 
             }
         }
 
-        // إخفاء كل الشاشات أولاً
         const screens = ['auth-screen', 'alpha-screen', 'search-screen', 'scanner-screen', 'whale-hunt-screen', 'pump-dump-screen', 'radar-ui'];
         screens.forEach(s => {
             const el = document.getElementById(s);
-            if(el) el.style.display = 'none';
+            if(el) el.style.display = (s === tab + '-screen' || s === tab) ? 'block' : 'none';
         });
 
-        // إظهار الشاشة المطلوبة
-        const target = (tab === 'radar') ? 'radar-ui' : tab + '-screen';
-        if(document.getElementById(target)) document.getElementById(target).style.display = 'block';
-        
-        clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt);
+        stopIntervals();
         if(tab === 'alpha') { updateAlpha(); alphaInt = setInterval(updateAlpha, 5000); }
         if(tab === 'scanner') { updateScanner(); scanInt = setInterval(updateScanner, 5000); }
         if(tab === 'whale-hunt') { updateWhaleHunt(); huntInt = setInterval(updateWhaleHunt, 10000); }
@@ -479,8 +472,8 @@
             const doc = await db.collection("users").doc(savedKey).get();
             if (doc.exists) {
                 const data = doc.data();
-                // --- النقطة الجوهرية (جراحي): تحديث متغير الرتبة فوراً ---
-                userTier = data.tier || 'silver'; 
+                // الفحص المزدوج للرتبة
+                userTier = data.tier || data.rank || 'silver'; 
                 if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
                 if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); }
             }
@@ -495,8 +488,7 @@
         const doc = await db.collection("users").doc(k).get();
         if (doc.exists) { 
             const data = doc.data();
-            // --- تحديث الرتبة عند التفعيل الجديد ---
-            userTier = data.tier || 'silver';
+            userTier = data.tier || data.rank || 'silver';
             if (data.expiryDate && new Date() > new Date(data.expiryDate)) { err.innerText = "❌ منتهي!"; err.style.display = 'block'; return; }
             let myId = localStorage.getItem('sz_device_id') || 'DEV-' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('sz_device_id', myId);
@@ -558,7 +550,11 @@
         switchTab('search');
     }
 
-    function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt); timeLeft = 30; }
+    function stopIntervals() { 
+        clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); 
+        clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt); 
+        timeLeft = 30; 
+    }
     
     async function updatePrice() { 
         try { 
@@ -660,7 +656,7 @@
                 let d = parseFloat(bids[0][1]) - parseFloat(lastBids[0][1]), amt = d * bids[0][0];
                 if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'BUY TEAM'});
             }
-            if (lastAsks.length > 0 && asks[0][0] === asks[0][0]) {
+            if (lastAsks.length > 0 && asks[0][0] === lastAsks[0][0]) {
                 let d = parseFloat(asks[0][1]) - parseFloat(lastAsks[0][1]), amt = d * asks[0][0];
                 if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'SELL TEAM'});
             }
