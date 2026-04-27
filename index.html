@@ -69,11 +69,36 @@
 
         @keyframes blink-gold { 0% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } 50% { border-color: #555; box-shadow: none; } 100% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } }
         .blink-border { animation: blink-gold 0.6s infinite; border-width: 2px !important; }
+
+        /* --- ستايل الرسالة الاحترافية (جراحي) --- */
+        #custom-alert {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;
+        }
+        .alert-box {
+            background: #080808; border: 2px solid var(--gold); padding: 25px; border-radius: 15px;
+            text-align: center; max-width: 300px; box-shadow: 0 0 30px rgba(251, 191, 36, 0.3);
+        }
+        .alert-box h4 { color: var(--gold); margin: 0 0 15px; font-size: 18px; }
+        .alert-box p { font-size: 13px; color: #ccc; margin-bottom: 20px; line-height: 1.6; }
+        .alert-box button {
+            background: var(--gold); color: #000; border: none; padding: 12px 25px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .alert-box button:active { transform: scale(0.95); }
     </style>
 </head>
 <body onload="checkAuth()">
 <div id="zoom-wrapper">
     <div id="zoom-container">
+        <div id="custom-alert">
+            <div class="alert-box">
+                <h4>🔒 قسم مخصص لترقية أعلى</h4>
+                <p>عذراً عزيزي المشترك، هذا القسم مخصص لترقية أعلى!<br>للحصول على الترقية، يرجى التواصل مع المطور أسفل الشاشة ⬇️</p>
+                <button onclick="closeAlert()">حسناً</button>
+            </div>
+        </div>
+
         <div id="auth-screen" class="lock-box">
             <div style="color:var(--gold); font-weight:bold; margin-bottom:20px;">🔒 Activate SEZAR-PHANTOM PRO</div>
             <div class="secure-note">هذا الرمز يعمل على جهاز واحد فقط<br>ولا يعمل على جهاز غيره نهائياً</div>
@@ -237,6 +262,10 @@
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
+    // --- وظائف التنبيه المخصص (جراحي) ---
+    function showAlert() { document.getElementById('custom-alert').style.display = 'flex'; }
+    function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
+
     function switchTab(tab) {
         // --- فحص الصلاحيات (جراحي) ---
         const limits = {
@@ -252,17 +281,21 @@
             if (userTier === 'gold' && limits[tab] === 'diamond') locked = true;
 
             if (locked) {
-                alert("⚠️ هذا القسم مخصص لترقية أعلى!\nللحصول على الترقية، يرجى التواصل مع المطور أسفل الشاشة ⬇️");
+                showAlert(); // استخدام الرسالة المخصصة
                 return; 
             }
         }
 
-        document.getElementById('alpha-screen').style.display = tab === 'alpha' ? 'block' : 'none';
-        document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
-        document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
-        document.getElementById('whale-hunt-screen').style.display = tab === 'whale-hunt' ? 'block' : 'none';
-        document.getElementById('pump-dump-screen').style.display = tab === 'pump-dump' ? 'block' : 'none';
-        document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
+        // إخفاء كل الشاشات أولاً لضمان عدم التعليق (جراحي)
+        const screens = ['auth-screen', 'alpha-screen', 'search-screen', 'scanner-screen', 'whale-hunt-screen', 'pump-dump-screen', 'radar-ui'];
+        screens.forEach(s => {
+            const el = document.getElementById(s);
+            if(el) el.style.display = 'none';
+        });
+
+        // إظهار الشاشة المطلوبة
+        const target = (tab === 'radar') ? 'radar-ui' : tab + '-screen';
+        if(document.getElementById(target)) document.getElementById(target).style.display = 'block';
         
         clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt);
         if(tab === 'alpha') { updateAlpha(); alphaInt = setInterval(updateAlpha, 5000); }
@@ -444,7 +477,6 @@
             const doc = await db.collection("users").doc(savedKey).get();
             if (doc.exists) {
                 const data = doc.data();
-                // --- جلب الرتبة (جراحي) ---
                 userTier = data.tier || 'silver'; 
                 if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
                 if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); }
@@ -460,7 +492,6 @@
         const doc = await db.collection("users").doc(k).get();
         if (doc.exists) { 
             const data = doc.data();
-            // --- جلب الرتبة عند التفعيل (جراحي) ---
             userTier = data.tier || 'silver';
             if (data.expiryDate && new Date() > new Date(data.expiryDate)) { err.innerText = "❌ منتهي!"; err.style.display = 'block'; return; }
             let myId = localStorage.getItem('sz_device_id') || 'DEV-' + Math.random().toString(36).substr(2, 9);
@@ -518,7 +549,12 @@
         tInt = setInterval(() => { timeLeft--; if(timeLeft<0) timeLeft=30; document.getElementById('timer').innerText = timeLeft; }, 1000);
     }
 
-    function goBack() { switchTab('alpha'); }
+    // --- العودة للقائمة (جراحي) ---
+    function goBack() {
+        stopIntervals();
+        switchTab('search'); // يرجعك دائماً لصفحة البحث
+    }
+
     function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt); timeLeft = 30; }
     
     async function updatePrice() { 
