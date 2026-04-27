@@ -70,6 +70,7 @@
         @keyframes blink-gold { 0% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } 50% { border-color: #555; box-shadow: none; } 100% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } }
         .blink-border { animation: blink-gold 0.6s infinite; border-width: 2px !important; }
 
+        /* --- ستايل الرسالة الاحترافية (جراحي) --- */
         #custom-alert {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;
@@ -84,6 +85,7 @@
             background: var(--gold); color: #000; border: none; padding: 12px 25px;
             border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;
         }
+        .alert-box button:active { transform: scale(0.95); }
     </style>
 </head>
 <body onload="checkAuth()">
@@ -262,7 +264,7 @@
     function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
     function switchTab(tab) {
-        // --- الجراحة الجدية (الذهبي يفتح البحث والسكنر والرادار فقط) ---
+        // --- تعديل الصلاحيات: الذهبي يفتح البحث والسكنر والرادار فقط ---
         const limits = {
             'alpha': 'diamond',
             'scanner': 'gold',
@@ -272,9 +274,7 @@
 
         if (limits[tab]) {
             let locked = false;
-            // الفضي: يفتح البحث فقط (الرادار يفتح من نتائج البحث)
             if (userTier === 'silver' && tab !== 'search') locked = true;
-            // الذهبي: يفتح البحث والسكنر (الرادار يفتح من النتائج)
             if (userTier === 'gold' && (tab === 'alpha' || tab === 'whale-hunt' || tab === 'pump-dump')) locked = true;
 
             if (locked) {
@@ -374,6 +374,9 @@
             finalDisplay.slice(0, 15).forEach(c => {
                 const isLocked = c.isLocked || false;
                 const isAlpha = alphaSymbols.includes(c.symbol);
+                // السطر الجديد للسيولة
+                const volM = (parseFloat(c.quoteVolume) / 1000000).toFixed(1);
+                
                 htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isAlpha ? 'var(--gold)' : 'var(--ghost)'}">
                     <div style="text-align:right">
                         <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
@@ -381,6 +384,7 @@
                             ${isLocked ? `<span style="font-size:10px; color:var(--red); font-weight:bold; margin-right:8px;">[تثبيت: ${c.timeLeft}ث]</span>` : ''}
                         </div>
                         <div style="color:var(--green); font-size:12px; font-weight:bold;">${isAlpha ? 'ALFA DETECTED' : 'MEME RADAR'}: ${c.priceChangePercent}%</div>
+                        <div style="color:#888; font-size:10px; margin-top:2px;">VOL: ${volM}M | CHG: ${c.priceChangePercent}%</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                 </div>`;
