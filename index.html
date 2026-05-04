@@ -70,7 +70,6 @@
         @keyframes blink-gold { 0% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } 50% { border-color: #555; box-shadow: none; } 100% { border-color: var(--gold); box-shadow: 0 0 12px var(--gold); } }
         .blink-border { animation: blink-gold 0.6s infinite; border-width: 2px !important; }
 
-        /* --- ستايل الرسالة الاحترافية (جراحي) --- */
         #custom-alert {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;
@@ -199,7 +198,7 @@
                 </div>
                 <div class="whale-col" style="border-left:1px solid #222; border-right:1px solid #222;">
                     <div class="whale-label">NET RATIO</div>
-                    <div class="whale-val" style="color:var(--gold); font-size:11px;">FUTURES</div>
+                    <div class="whale-val" id="net-ratio-status" style="color:var(--gold); font-size:11px;">FUTURES</div>
                     <div id="net-perc" class="whale-sub" style="color:var(--gold)">0.0%</div>
                 </div>
                 <div class="whale-col">
@@ -243,9 +242,67 @@
     let lockedAlphaCoins = new Map();
     let lockedScannerCoins = new Map();
     let lastSignalTime = 0;
+    
+    let lockedSignalState = "NEUTRAL"; 
+    let marketFlowDelta = 0; 
+    let makerBuyScore = 0;
+    let makerSellScore = 0;
+    const CONFIRMATION_STRENGTH = 2; 
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
+    function getFingerprint() {
+        return btoa(navigator.userAgent + navigator.language + screen.width + screen.height);
+    }
+
+    async function checkAuth() {
+        const key = localStorage.getItem('sz_ultimate_v1_key');
+        if (key) {
+            const fingerprint = getFingerprint();
+            const doc = await db.collection("users").doc(key).get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.deviceId && data.deviceId !== "" && data.deviceId !== fingerprint) {
+                    localStorage.removeItem('sz_ultimate_v1_key');
+                    location.reload();
+                    return;
+                }
+                userTier = data.tier || data.rank || 'silver'; 
+                showSearch();
+            }
+        }
+    }
+
+    async function activate() { 
+        const k = document.getElementById('pass-key').value.trim();
+        const errorMsg = document.getElementById('error-msg');
+        if(!k) return;
+        const fingerprint = getFingerprint();
+        try {
+            const doc = await db.collection("users").doc(k).get();
+            if (doc.exists) { 
+                const data = doc.data();
+                if (data.deviceId && data.deviceId !== "" && data.deviceId !== fingerprint) {
+                    errorMsg.innerText = "❌ عذراً، هذا الكود مفعل على جهاز آخر مسبقاً!";
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+                if (!data.deviceId || data.deviceId === "") {
+                    await db.collection("users").doc(k).update({ deviceId: fingerprint });
+                }
+                userTier = data.tier || data.rank || 'silver';
+                localStorage.setItem('sz_ultimate_v1_key', k);
+                showSearch(); 
+            } else {
+                errorMsg.innerText = "❌ كود التفعيل غير صحيح!";
+                errorMsg.style.display = 'block';
+            }
+        } catch (e) {
+            errorMsg.innerText = "🚨 خطأ في الاتصال بالسيرفر!";
+            errorMsg.style.display = 'block';
+        }
+    }
+
     function playSniperWhistle(isDanger = false) {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -259,39 +316,21 @@
     }
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
-    
     function showAlert() { document.getElementById('custom-alert').style.display = 'flex'; }
     function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
     function switchTab(tab) {
-        // --- تعديل الصلاحيات: الذهبي يفتح البحث والسكنر والرادار فقط ---
-        const limits = {
-            'alpha': 'diamond',
-            'scanner': 'gold',
-            'whale-hunt': 'diamond',
-            'pump-dump': 'diamond'
-        };
-
+        const limits = { 'alpha': 'diamond', 'scanner': 'gold', 'whale-hunt': 'diamond', 'pump-dump': 'diamond' };
         if (limits[tab]) {
             let locked = false;
             if (userTier === 'silver' && tab !== 'search') locked = true;
             if (userTier === 'gold' && (tab === 'alpha' || tab === 'whale-hunt' || tab === 'pump-dump')) locked = true;
-
-            if (locked) {
-                showAlert();
-                return; 
-            }
+            if (locked) { showAlert(); return; }
         }
-
         const screens = ['auth-screen', 'alpha-screen', 'search-screen', 'scanner-screen', 'whale-hunt-screen', 'pump-dump-screen', 'radar-ui'];
-        screens.forEach(s => {
-            const el = document.getElementById(s);
-            if(el) el.style.display = 'none';
-        });
-
+        screens.forEach(s => { if(document.getElementById(s)) document.getElementById(s).style.display = 'none'; });
         const target = (tab === 'radar') ? 'radar-ui' : tab + '-screen';
         if(document.getElementById(target)) document.getElementById(target).style.display = 'block';
-        
         clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt);
         if(tab === 'alpha') { updateAlpha(); alphaInt = setInterval(updateAlpha, 5000); }
         if(tab === 'scanner') { updateScanner(); scanInt = setInterval(updateScanner, 5000); }
@@ -374,9 +413,7 @@
             finalDisplay.slice(0, 15).forEach(c => {
                 const isLocked = c.isLocked || false;
                 const isAlpha = alphaSymbols.includes(c.symbol);
-                // السطر الجديد للسيولة
                 const volM = (parseFloat(c.quoteVolume) / 1000000).toFixed(1);
-                
                 htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isAlpha ? 'var(--gold)' : 'var(--ghost)'}">
                     <div style="text-align:right">
                         <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
@@ -389,7 +426,7 @@
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                 </div>`;
             });
-            list.innerHTML = htmlContent || '<div style="color:#555; margin-top:20px;">جاري مراقبة العملات المتهيأة...</div>';
+            list.innerHTML = htmlContent;
         } catch (e) {}
     }
 
@@ -460,32 +497,8 @@
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">دخول 🎯</button>
                 </div>`;
             });
-            list.innerHTML = html || '<div style="color:#555; margin-top:20px;">جاري رصد الانفجارات اللحظية...</div>';
+            list.innerHTML = html;
         } catch (e) {}
-    }
-
-    async function checkAuth() {
-        const key = localStorage.getItem('sz_ultimate_v1_key');
-        if (key) {
-            const doc = await db.collection("users").doc(key).get();
-            if (doc.exists) {
-                const data = doc.data();
-                userTier = data.tier || data.rank || 'silver'; 
-                showSearch();
-            }
-        }
-    }
-
-    async function activate() { 
-        const k = document.getElementById('pass-key').value;
-        if(!k) return;
-        const doc = await db.collection("users").doc(k).get();
-        if (doc.exists) { 
-            const data = doc.data();
-            userTier = data.tier || data.rank || 'silver';
-            localStorage.setItem('sz_ultimate_v1_key', k);
-            showSearch(); 
-        }
     }
 
     async function showSearch() {
@@ -525,6 +538,7 @@
         switchTab('radar');
         document.getElementById('iceberg-list').innerHTML = '';
         lastBids = []; lastAsks = []; sigBuffer = { buy: 0, sell: 0 };
+        lockedSignalState = "NEUTRAL"; makerBuyScore = 0; makerSellScore = 0;
         document.getElementById('current-coin-name').innerText = `[ ${symbol} ] - ${currentMode.toUpperCase()}`;
         const chartSymbol = currentMode === 'futures' ? `BINANCE:${symbol}PERP` : `BINANCE:${symbol}`;
         document.getElementById('chart-frame').src = `https://s.tradingview.com/widgetembed/?symbol=${chartSymbol}&interval=1&theme=dark`;
@@ -535,7 +549,20 @@
         tInt = setInterval(() => { timeLeft--; if(timeLeft<0) timeLeft=30; document.getElementById('timer').innerText = timeLeft; }, 1000);
     }
 
-    function goBack() { stopIntervals(); switchTab('search'); }
+    function goBack() { 
+        stopIntervals(); 
+        document.body.classList.remove('danger-blink'); 
+        lockedSignalState = "NEUTRAL"; 
+        const aiDec = document.getElementById('ai-decision');
+        const aiTar = document.getElementById('ai-target');
+        const sigBox = document.getElementById('sig-box');
+        if(aiDec) aiDec.innerText = "Analyzing...";
+        if(aiTar) aiTar.innerText = "--";
+        if(sigBox) { sigBox.innerText = "WAITING..."; sigBox.className = ""; }
+        makerBuyScore = 0; makerSellScore = 0; sigBuffer = { buy: 0, sell: 0 };
+        switchTab('search'); 
+    }
+
     function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt); timeLeft = 30; }
     
     async function updatePrice() { 
@@ -544,7 +571,7 @@
             const res = await fetch(url); 
             const data = await res.json(); 
             currentPrice = parseFloat(data.price); 
-            document.getElementById('coin-price').innerText = '$' + currentPrice.toLocaleString(undefined, {minimumFractionDigits: 2}); 
+            document.getElementById('coin-price').innerText = '$' + currentPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 8}); 
         } catch (e) {} 
     }
 
@@ -567,18 +594,61 @@
             document.getElementById('net-perc').innerText = buyP.toFixed(1) + "%";
             let buyBalls = Math.round(buyP / 10), sellBalls = 10 - buyBalls;
             document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(sellBalls);
+            
             const sig = document.getElementById('sig-box');
-            sig.innerText = buyP > 55 ? "🟢 SIGNAL: BULLISH" : (buyP < 45 ? "🔴 SIGNAL: BEARISH" : "🟡 SIGNAL: NEUTRAL");
-            sig.className = buyP > 55 ? "sig-bullish" : (buyP < 45 ? "sig-bearish" : "");
             let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
-            document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>VOL: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
-            document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>VOL: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
+            
+            document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>VOL: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toFixed(8).replace(/\.?0+$/, '')}</span></div>`).join('');
+            document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>VOL: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toFixed(8).replace(/\.?0+$/, '')}</span></div>`).join('');
+            
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
             const supportShield = document.getElementById('support-shield-text');
-            const immSupport = bids.slice(0, 15).reduce((s,b)=>s+b.v, 0);
-            const immResistance = asks.slice(0, 15).reduce((s,a)=>s+a.v, 0);
-            if (topBid.p === lastTopBidPrice && lastTopBidPrice !== 0) { wallStabilityCounter++; } else { wallStabilityCounter = 0; }
+            const gap = ((currentPrice - topBid.p) / currentPrice) * 100;
+            const now = Date.now();
+
+            if (lockedSignalState === "STRONG_SELL" && buyP > 55 && wallStabilityCounter < 2) {
+                 lockedSignalState = "NEUTRAL"; 
+            }
+
+            if (makerSellScore >= CONFIRMATION_STRENGTH || gap > 5.5) {
+                if (lockedSignalState !== "STRONG_SELL") {
+                    lockedSignalState = "STRONG_SELL";
+                    playSniperWhistle(true);
+                    document.body.classList.add('danger-blink');
+                    aiDec.innerText = gap > 5.5 ? "⚠️ SPOOF DETECTED: SELL" : "💀 MAKER DUMPING: SELL";
+                    aiDec.style.color = "var(--red)";
+                    aiTar.innerText = "$" + topBid.p.toFixed(8).replace(/\.?0+$/, '');
+                    aiC.innerText = "99%";
+                    sig.innerText = "🔴 SIGNAL: STRONG SELL";
+                    sig.className = "sig-bearish";
+                    lastSignalTime = now;
+                }
+            } else if (makerBuyScore >= CONFIRMATION_STRENGTH || (buyP > 60 && gap < 1.5)) {
+                if (lockedSignalState !== "STRONG_BUY") {
+                    lockedSignalState = "STRONG_BUY";
+                    playSniperWhistle(false);
+                    document.body.classList.remove('danger-blink');
+                    aiDec.innerText = "🚀 TREND FLIP: BUY NOW";
+                    aiDec.style.color = "var(--green)";
+                    aiTar.innerText = "$" + topAsk.p.toFixed(8).replace(/\.?0+$/, '');
+                    aiC.innerText = "96%";
+                    sig.innerText = "🟢 SIGNAL: STRONG BUY";
+                    sig.className = "sig-bullish";
+                    lastSignalTime = now;
+                }
+            } else if (makerBuyScore === 0 && makerSellScore === 0) {
+                if (lockedSignalState !== "NEUTRAL") {
+                    lockedSignalState = "NEUTRAL";
+                    document.body.classList.remove('danger-blink');
+                    aiDec.innerText = "🟡 MONITORING FLOW";
+                    aiDec.style.color = "var(--gold)";
+                    aiTar.innerText = "N/A";
+                    aiC.innerText = "--%";
+                    sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
+                }
+            }
+
             if (topBid.p >= lastSupportWall && lastSupportWall !== 0) {
                 supportShield.innerText = "🛡️ SUPPORT SHIELD: ACTIVE 🚀";
                 supportShield.style.color = "var(--green)";
@@ -587,33 +657,6 @@
                 supportShield.style.color = "var(--gold)";
             }
             lastSupportWall = topBid.p;
-            const now = Date.now();
-            if (buyP > 65 && immSupport > immResistance && wallStabilityCounter >= 4) {
-                if (now - lastSignalTime > 5000) { 
-                    sigBuffer.buy++; sigBuffer.sell = 0;
-                    document.body.classList.remove('danger-blink');
-                    if (sigBuffer.buy >= 3) {
-                        playSniperWhistle(false);
-                        aiDec.innerText = "🚀 SNIPE BUY: TARGET REACHED";
-                        aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%";
-                        lastSignalTime = now;
-                    }
-                }
-            } else if (sellP > 65 || (lastBidsTotal > 0 && immSupport < lastBidsTotal * 0.3)) {
-                if (now - lastSignalTime > 3000) {
-                    sigBuffer.sell++; sigBuffer.buy = 0;
-                    playSniperWhistle(true);
-                    document.body.classList.add('danger-blink');
-                    aiDec.innerText = "🚨 RUG PULL / EXIT 💀";
-                    aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "99%";
-                    lastSignalTime = now;
-                }
-            } else {
-                sigBuffer.buy = 0; sigBuffer.sell = 0;
-                document.body.classList.remove('danger-blink');
-                aiDec.innerText = "🟡 MONITORING FLOW"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "--%";
-            }
-            lastBidsTotal = immSupport;
             lastTopBidPrice = topBid.p;
         } catch (e) {}
     }
@@ -634,20 +677,37 @@
             let bids = data.bids, asks = data.asks;
             let found = [];
             const sensitivity = parseInt(document.getElementById('ice-sensitivity').value);
+
             if (lastBids.length > 0 && bids[0][0] === lastBids[0][0]) {
                 let d = parseFloat(bids[0][1]) - parseFloat(lastBids[0][1]), amt = d * bids[0][0];
-                if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'BUY TEAM'});
+                if (amt > sensitivity) {
+                    found.push({p: bids[0][0], m: amt, t: 'BUY TEAM'});
+                    makerBuyScore++; 
+                    makerSellScore = 0;
+                }
             }
             if (lastAsks.length > 0 && asks[0][0] === lastAsks[0][0]) {
                 let d = parseFloat(asks[0][1]) - parseFloat(lastAsks[0][1]), amt = d * asks[0][0];
-                if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'SELL TEAM'});
+                if (amt > sensitivity) {
+                    found.push({p: asks[0][0], m: amt, t: 'SELL TEAM'});
+                    makerSellScore++;
+                    makerBuyScore = 0;
+                }
             }
+            
+            setTimeout(() => {
+                if (found.length === 0) {
+                    if (makerBuyScore > 0) makerBuyScore--;
+                    if (makerSellScore > 0) makerSellScore--;
+                }
+            }, 8000);
+
             if(found.length > 0) {
                 const list = document.getElementById('iceberg-list');
                 found.forEach(ice => {
                     const row = document.createElement('div'); row.className = 'row';
                     const mVal = ice.m >= 1000000 ? (ice.m/1000000).toFixed(2) + "M" : (ice.m/1000).toFixed(1) + "K";
-                    row.innerHTML = `<span style="color:${ice.t==='BUY TEAM'?'var(--green)':'var(--red)'}">${ice.t}</span><span style="color:var(--gold)">$${mVal}</span><span>$${parseFloat(ice.p).toLocaleString()}</span>`;
+                    row.innerHTML = `<span style="color:${ice.t==='BUY TEAM'?'var(--green)':'var(--red)'}">${ice.t}</span><span style="color:var(--gold)">$${mVal}</span><span>$${parseFloat(ice.p).toFixed(8).replace(/\.?0+$/, '')}</span>`;
                     list.prepend(row); if (list.children.length > 5) list.removeChild(list.lastChild);
                 });
             }
@@ -656,4 +716,4 @@
     }
 </script>
 </body>
-</html>
+</html> 
